@@ -1,3 +1,4 @@
+package SID.mongo;
 
 import java.io.FileInputStream;
 import java.sql.Connection;
@@ -96,7 +97,7 @@ public class MongoToSQL implements Runnable {
 			ps.executeUpdate();
 		} catch (SQLException e) {
 			System.out.println("\n Problemas no insert no dado com o id = " + id
-					+ ": Informação repetida ou tipo de dados não aceite \n" + e);
+					+ ": Informaï¿½ï¿½o repetida ou tipo de dados nï¿½o aceite \n" + e);
 		}
 	}
 
@@ -138,7 +139,7 @@ public class MongoToSQL implements Runnable {
 		try {
 			final Properties properties = new Properties();
 			properties.load(new FileInputStream(
-					"C:\\Users\\henri\\Dropbox\\iscte\\3ºAno\\2ºSemestre\\Proj Integracao Sistemas Inf Distribuidos\\dbtools(3)\\dbtools\\CloudToMongo.ini"));
+					"C:\\Users\\henri\\Dropbox\\iscte\\3ï¿½Ano\\2ï¿½Semestre\\Proj Integracao Sistemas Inf Distribuidos\\dbtools(3)\\dbtools\\CloudToMongo.ini"));
 			CloudToMongo.mongo_address = properties.getProperty("mongo_address");
 			CloudToMongo.mongo_user = properties.getProperty("mongo_user");
 			CloudToMongo.mongo_password = properties.getProperty("mongo_password");
