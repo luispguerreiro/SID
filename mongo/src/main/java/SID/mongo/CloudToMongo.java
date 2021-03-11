@@ -1,36 +1,34 @@
-package SID.mongo;
-
-import java.awt.Dimension;
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import com.mongodb.util.JSON;
+import com.mongodb.DBObject;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+import com.mongodb.MongoClientURI;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import java.util.Random;
+import javax.swing.JOptionPane;
+import java.io.InputStream;
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.Properties;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.FileInputStream;
-import java.util.Properties;
-import java.util.Random;
-
 import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
+import java.awt.Component;
 import javax.swing.JScrollPane;
+import java.awt.Dimension;
+import javax.swing.JLabel;
+import javax.swing.JFrame;
 import javax.swing.JTextArea;
-
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-
-import com.mongodb.DB;
 import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
+import com.mongodb.DB;
 import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
-import com.mongodb.util.JSON;
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttCallback;
 
-
-public class CloudToMongo implements MqttCallback {
-    
-	MqttClient mqttclient;
+// Henrique
+public class CloudToMongo implements MqttCallback
+{
+    MqttClient mqttclient;
     static MongoClient mongoClient;
     static DB db;
     static DBCollection mongocol;
@@ -46,21 +44,6 @@ public class CloudToMongo implements MqttCallback {
     static String display_documents;
     static String mongo_authentication;
     static JTextArea documentLabel;
-    
-    static {
-        CloudToMongo.mongo_user = new String();
-        CloudToMongo.mongo_password = new String();
-        CloudToMongo.mongo_address = new String();
-        CloudToMongo.cloud_server = new String();
-        CloudToMongo.cloud_topic = new String();
-        CloudToMongo.mongo_host = new String();
-        CloudToMongo.mongo_replica = new String();
-        CloudToMongo.mongo_database = new String();
-        CloudToMongo.mongo_collection = new String();
-        CloudToMongo.display_documents = new String();
-        CloudToMongo.mongo_authentication = new String();
-        CloudToMongo.documentLabel = new JTextArea("\n");
-    }
     
     private static void createWindow() {
         final JFrame frame = new JFrame("Cloud to Mongo");
@@ -88,7 +71,7 @@ public class CloudToMongo implements MqttCallback {
         createWindow();
         try {
             final Properties properties = new Properties();
-            properties.load(new FileInputStream("C:\\Users\\henri\\Dropbox\\iscte\\3ÂºAno\\2ÂºSemestre\\Proj Integracao Sistemas Inf Distribuidos\\dbtools(3)\\dbtools\\CloudToMongo.ini"));
+            properties.load(new FileInputStream("C:\\Users\\henri\\Dropbox\\iscte\\3ºAno\\2ºSemestre\\Proj Integracao Sistemas Inf Distribuidos\\dbtools(3)\\dbtools\\CloudToMongo.ini"));
             CloudToMongo.mongo_address = properties.getProperty("mongo_address");
             CloudToMongo.mongo_user = properties.getProperty("mongo_user");
             CloudToMongo.mongo_password = properties.getProperty("mongo_password");
@@ -139,8 +122,7 @@ String.valueOf(new Random().nextInt(100000)) + "_" + CloudToMongo.cloud_topic)).
         else if (CloudToMongo.mongo_authentication.equals("true")) {
             str += "/?authSource=admin";
         }
-        db = new MongoClient(new MongoClientURI(str)).getDatabase(mongo_database);        
-        
+        CloudToMongo.db = new MongoClient(new MongoClientURI(str)).getDB(CloudToMongo.mongo_database);
         CloudToMongo.mongocol = CloudToMongo.db.getCollection(CloudToMongo.mongo_collection);
     }
     
@@ -174,5 +156,19 @@ String.valueOf(new Random().nextInt(100000)) + "_" + CloudToMongo.cloud_topic)).
     
     public void deliveryComplete(final IMqttDeliveryToken mqttDeliveryToken) {
     }
-  
+    
+    static {
+        CloudToMongo.mongo_user = new String();
+        CloudToMongo.mongo_password = new String();
+        CloudToMongo.mongo_address = new String();
+        CloudToMongo.cloud_server = new String();
+        CloudToMongo.cloud_topic = new String();
+        CloudToMongo.mongo_host = new String();
+        CloudToMongo.mongo_replica = new String();
+        CloudToMongo.mongo_database = new String();
+        CloudToMongo.mongo_collection = new String();
+        CloudToMongo.display_documents = new String();
+        CloudToMongo.mongo_authentication = new String();
+        CloudToMongo.documentLabel = new JTextArea("\n");
+    }
 }
