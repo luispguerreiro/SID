@@ -1,17 +1,20 @@
-package SID.mongo;
 
 import java.io.FileInputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
 import org.bson.Document;
 
-import com.mongodb.*;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 
 public class MongoToSQL implements Runnable {
@@ -63,6 +66,7 @@ public class MongoToSQL implements Runnable {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public void connectMongo() {
 		final String s = new String();
 		String string = "mongodb://";
@@ -79,15 +83,62 @@ public class MongoToSQL implements Runnable {
 		} else if (CloudToMongo.mongo_authentication.equals("true")) {
 			str += "/?authSource=admin";
 		}
-		CloudToMongo.db = new MongoClient(new MongoClientURI(str)).getDatabase(CloudToMongo.mongo_database);
-		CloudToMongo.mongocol = (DBCollection) CloudToMongo.db.getCollection(CloudToMongo.mongo_collection);
+		CloudToMongo.db = new MongoClient(new MongoClientURI(str)).getDB(CloudToMongo.mongo_database);
+		CloudToMongo.mongocol = CloudToMongo.db.getCollection(CloudToMongo.mongo_collection);
 	}
 
+	public void insert(String sql) {
+		PreparedStatement ps;
+		try {
+			ps = connection.prepareStatement(sql);
+			ps.setInt(1, 3);
+			ps.setString(2, "Hemry");
+			ps.executeUpdate();
+		} catch (SQLException e) {
+			System.out.println("\n Problemas no insert no dado com o id = " + id
+					+ ": Informação repetida ou tipo de dados não aceite \n" + e);
+		}
+	}
+
+	public void sendToSql() {
+		int i = 0;
+		int count = 1;
+
+		try (MongoCursor<Document> cur = col.find().iterator()) {
+			while (cur.hasNext()) {
+				Document doc = cur.next();
+				dataList = new ArrayList(doc.values());
+
+				i++;
+				id = i + "";
+				temperature = (String) dataList.get(1);
+				humidity = (String) dataList.get(2);
+				date = (String) dataList.get(3);
+				time = (String) dataList.get(4);
+
+//				insert("INSERT INTO `teste1` (`ID`, `Nome`) VALUES (? , ?); ");
+				
+				System.out.println(id);
+				System.out.println(temperature);
+				System.out.println(humidity);
+				System.out.println(date);
+				System.out.println(time + "\n");
+			
+			}
+		}
+	}
+
+	
+	public String getSQLStatement (String id ,String temperature, String humidity, String date, String time) {
+		return "INSERT INTO DBA.Humidade_Temperatura  (IDMedicao, HoraMedicao, ValorMedicaoTemperatura, ValorMedicaoHumidade, DataMedicao)"
+				+ " VALUES ('" + id + "' , '" + time + "' , '" + temperature + "'  , '" + humidity + "', '" + date + "'  )";
+	}
+	
 	public static void main(String[] args) throws ClassNotFoundException {
 		try {
 			final Properties properties = new Properties();
 			properties.load(new FileInputStream(
-					"C:\\Users\\henri\\Dropbox\\iscte\\3ÂºAno\\2ÂºSemestre\\Proj Integracao Sistemas Inf Distribuidos\\dbtools(3)\\dbtools\\CloudToMongo.ini"));
+					"C:\\Users\\henri\\Dropbox\\iscte\\3ºAno\\2ºSemestre\\Proj Integracao Sistemas Inf Distribuidos\\dbtools(3)\\dbtools\\CloudToMongo.ini"));
 			CloudToMongo.mongo_address = properties.getProperty("mongo_address");
 			CloudToMongo.mongo_user = properties.getProperty("mongo_user");
 			CloudToMongo.mongo_password = properties.getProperty("mongo_password");
@@ -102,8 +153,10 @@ public class MongoToSQL implements Runnable {
 		} catch (Exception obj) {
 			System.out.println("Error reading CloudToMongo.ini file " + obj);
 		}
-//		new MongoToSQL().connectMongo();
-		new MongoToSQL().connectSql();
+		MongoToSQL mts = new MongoToSQL();
+		mts.connectMongo();
+		mts.connectSql();
+		mts.sendToSql();
 	}
 
 	@Override
