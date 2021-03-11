@@ -27,8 +27,8 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.util.JSON;
 
-// Henriqueee
-// Luisss
+// H
+// L
 public class CloudToMongo implements MqttCallback
 {
     MqttClient mqttclient;
