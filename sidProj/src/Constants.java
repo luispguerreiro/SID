@@ -69,28 +69,28 @@ public class Constants {
 			mongoProperties.load(new FileInputStream(mongoIniFile));
 //			SqlProperties.load(new FileInputStream(sqlIniFile));
 
-			Constants.mongo_address = mongoProperties.getProperty("mongo_address");
-			Constants.mongo_authentication = mongoProperties.getProperty("mongo_authentication");
-			Constants.mongo_database = mongoProperties.getProperty("mongo_database");
-			Constants.mongo_replica = mongoProperties.getProperty("mongo_replica");
-			Constants.mongo_collectiont1 = mongoProperties.getProperty("mongo_collectiont1");
-			Constants.mongo_collectiont2 = mongoProperties.getProperty("mongo_collectiont2");
-			Constants.mongo_collectionh1 = mongoProperties.getProperty("mongo_collectionh1");
-			Constants.mongo_collectionh2 = mongoProperties.getProperty("mongo_collectionh2");
-			Constants.mongo_collectionl1 = mongoProperties.getProperty("mongo_collectionl1");
-			Constants.mongo_collectionl2 = mongoProperties.getProperty("mongo_collectionl2");
+			mongo_address = mongoProperties.getProperty("mongo_address");
+			mongo_authentication = mongoProperties.getProperty("mongo_authentication");
+			mongo_database = mongoProperties.getProperty("mongo_database");
+			mongo_replica = mongoProperties.getProperty("mongo_replica");
+			mongo_collectiont1 = mongoProperties.getProperty("mongo_collectiont1");
+			mongo_collectiont2 = mongoProperties.getProperty("mongo_collectiont2");
+			mongo_collectionh1 = mongoProperties.getProperty("mongo_collectionh1");
+			mongo_collectionh2 = mongoProperties.getProperty("mongo_collectionh2");
+			mongo_collectionl1 = mongoProperties.getProperty("mongo_collectionl1");
+			mongo_collectionl2 = mongoProperties.getProperty("mongo_collectionl2");
 
-			Constants.sid_mongo_user = mongoProperties.getProperty("sid_mongo_user");
-			Constants.sid_mongo_password = mongoProperties.getProperty("sid_mongo_password");
-			Constants.sid_mongo_database = mongoProperties.getProperty("sid_mongo_database");
-			Constants.sid_mongo_address = mongoProperties.getProperty("sid_mongo_address");
-			Constants.sid_mongo_authentication = mongoProperties.getProperty("sid_mongo_authentication");
-			Constants.sidt1_mongo_collection = mongoProperties.getProperty("mongo_collection_sidt1");
-			Constants.sidt2_mongo_collection = mongoProperties.getProperty("mongo_collection_sidt2");
-			Constants.sidh1_mongo_collection = mongoProperties.getProperty("mongo_collection_sidh1");
-			Constants.sidh2_mongo_collection = mongoProperties.getProperty("mongo_collection_sidh2");
-			Constants.sidl1_mongo_collection = mongoProperties.getProperty("mongo_collection_sidl1");
-			Constants.sidl2_mongo_collection = mongoProperties.getProperty("mongo_collection_sidl2");
+			sid_mongo_user = mongoProperties.getProperty("sid_mongo_user");
+			sid_mongo_password = mongoProperties.getProperty("sid_mongo_password");
+			sid_mongo_database = mongoProperties.getProperty("sid_mongo_database");
+			sid_mongo_address = mongoProperties.getProperty("sid_mongo_address");
+			sid_mongo_authentication = mongoProperties.getProperty("sid_mongo_authentication");
+			sidt1_mongo_collection = mongoProperties.getProperty("mongo_collection_sidt1");
+			sidt2_mongo_collection = mongoProperties.getProperty("mongo_collection_sidt2");
+			sidh1_mongo_collection = mongoProperties.getProperty("mongo_collection_sidh1");
+			sidh2_mongo_collection = mongoProperties.getProperty("mongo_collection_sidh2");
+			sidl1_mongo_collection = mongoProperties.getProperty("mongo_collection_sidl1");
+			sidl2_mongo_collection = mongoProperties.getProperty("mongo_collection_sidl2");
 
 		} catch (IOException obj) {
 			System.out.println("Error reading ini file " + obj);
@@ -98,31 +98,23 @@ public class Constants {
 	}
 	
 	public void assignSidCol() {
-		Constants.colSidt1 = Constants.sid_db.getCollection(Constants.sidt1_mongo_collection);
-		Constants.colSidt2 = Constants.sid_db.getCollection(Constants.sidt2_mongo_collection);
-		Constants.colSidh1 = Constants.sid_db.getCollection(Constants.sidh1_mongo_collection);
-		Constants.colSidh2 = Constants.sid_db.getCollection(Constants.sidh2_mongo_collection);
-		Constants.colSidl1 = Constants.sid_db.getCollection(Constants.sidl1_mongo_collection);
-		Constants.colSidl2 = Constants.sid_db.getCollection(Constants.sidl2_mongo_collection);
+		colSidt1 = sid_db.getCollection(sidt1_mongo_collection);
+		colSidt2 = sid_db.getCollection(sidt2_mongo_collection);
+		colSidh1 = sid_db.getCollection(sidh1_mongo_collection);
+		colSidh2 = sid_db.getCollection(sidh2_mongo_collection);
+		colSidl1 = sid_db.getCollection(sidl1_mongo_collection);
+		colSidl2 = sid_db.getCollection(sidl2_mongo_collection);
 	}
 	
 	public void assignColGroup() {
-		Constants.colt1 = Constants.db.getCollection(Constants.mongo_collectiont1);
-		Constants.colt2 = Constants.db.getCollection(Constants.mongo_collectiont2);
-		Constants.colh1 = Constants.db.getCollection(Constants.mongo_collectionh1);
-		Constants.colh2 = Constants.db.getCollection(Constants.mongo_collectionh2);
-		Constants.coll1 = Constants.db.getCollection(Constants.mongo_collectionl1);
-		Constants.coll2 = Constants.db.getCollection(Constants.mongo_collectionl2);
+		colt1 = db.getCollection(mongo_collectiont1);
+		colt2 = db.getCollection(mongo_collectiont2);
+		colh1 = db.getCollection(mongo_collectionh1);
+		colh2 = db.getCollection(mongo_collectionh2);
+		coll1 = db.getCollection(mongo_collectionl1);
+		coll2 = db.getCollection(mongo_collectionl2);
 	}
 	
-	public void assignColIterations() {
-		ColIteration t2 = new ColIteration(colSidt2, colt2);
-		ColIteration t1 = new ColIteration(colSidt1, colt1);
-		ColIteration h1 = new ColIteration(colSidh1, colh1);
-		ColIteration h2 = new ColIteration(colSidh2, colh2);
-		ColIteration l1 = new ColIteration(colSidl1, coll1);
-		ColIteration l2 = new ColIteration(colSidl2, coll2);
-	}
 	
 	public static void main(String[] args) {
 		Constants c = new Constants();
