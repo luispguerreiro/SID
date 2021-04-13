@@ -119,6 +119,7 @@ public class Constants {
 	public static void main(String[] args) {
 		Constants c = new Constants();
 		c.assignConstants();
+		c.assignColGroup();
 		System.out.println(mongo_address);
 	}
 
