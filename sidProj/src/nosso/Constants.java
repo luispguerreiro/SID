@@ -74,12 +74,12 @@ public class Constants {
 			mongo_authentication = mongoProperties.getProperty("mongo_authentication");
 			mongo_database = mongoProperties.getProperty("mongo_database");
 			mongo_replica = mongoProperties.getProperty("mongo_replica");
-			mongo_collectiont1 = mongoProperties.getProperty("mongo_collectiont1");
-			mongo_collectiont2 = mongoProperties.getProperty("mongo_collectiont2");
-			mongo_collectionh1 = mongoProperties.getProperty("mongo_collectionh1");
-			mongo_collectionh2 = mongoProperties.getProperty("mongo_collectionh2");
-			mongo_collectionl1 = mongoProperties.getProperty("mongo_collectionl1");
-			mongo_collectionl2 = mongoProperties.getProperty("mongo_collectionl2");
+			mongo_collectiont1 = mongoProperties.getProperty("mongo_collectiont1a");
+			mongo_collectiont2 = mongoProperties.getProperty("mongo_collectiont2a");
+//			mongo_collectionh1 = mongoProperties.getProperty("mongo_collectionh1");
+//			mongo_collectionh2 = mongoProperties.getProperty("mongo_collectionh2");
+//			mongo_collectionl1 = mongoProperties.getProperty("mongo_collectionl1");
+//			mongo_collectionl2 = mongoProperties.getProperty("mongo_collectionl2");
 
 			sid_mongo_user = mongoProperties.getProperty("sid_mongo_user");
 			sid_mongo_password = mongoProperties.getProperty("sid_mongo_password");
@@ -110,10 +110,10 @@ public class Constants {
 	public void assignColGroup() {
 		colt1 = db.getCollection(mongo_collectiont1);
 		colt2 = db.getCollection(mongo_collectiont2);
-		colh1 = db.getCollection(mongo_collectionh1);
-		colh2 = db.getCollection(mongo_collectionh2);
-		coll1 = db.getCollection(mongo_collectionl1);
-		coll2 = db.getCollection(mongo_collectionl2);
+//		colh1 = db.getCollection(mongo_collectionh1);
+//		colh2 = db.getCollection(mongo_collectionh2);
+//		coll1 = db.getCollection(mongo_collectionl1);
+//		coll2 = db.getCollection(mongo_collectionl2);
 	}
 	
 	
