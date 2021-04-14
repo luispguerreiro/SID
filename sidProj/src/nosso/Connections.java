@@ -1,3 +1,4 @@
+package nosso;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -96,12 +97,12 @@ public class Connections {
 	}
 
 	public void colIterations() {
-		ColIteration t2 = new ColIteration(Constants.colSidt2, Constants.colt2);
-		ColIteration t1 = new ColIteration(Constants.colSidt1, Constants.colt1);
-		ColIteration h1 = new ColIteration(Constants.colSidh1, Constants.colh1);
-		ColIteration h2 = new ColIteration(Constants.colSidh2, Constants.colh2);
-		ColIteration l1 = new ColIteration(Constants.colSidl1, Constants.coll1);
-		ColIteration l2 = new ColIteration(Constants.colSidl2, Constants.coll2);
+		ColIterationtest t2 = new ColIterationtest(Constants.colSidt2, Constants.colt2);
+		ColIterationtest t1 = new ColIterationtest(Constants.colSidt1, Constants.colt1);
+		ColIterationtest h1 = new ColIterationtest(Constants.colSidh1, Constants.colh1);
+		ColIterationtest h2 = new ColIterationtest(Constants.colSidh2, Constants.colh2);
+		ColIterationtest l1 = new ColIterationtest(Constants.colSidl1, Constants.coll1);
+		ColIterationtest l2 = new ColIterationtest(Constants.colSidl2, Constants.coll2);
 	}
 
 	public void connectSql() {

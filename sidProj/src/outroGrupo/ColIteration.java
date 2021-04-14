@@ -1,22 +1,45 @@
+package outroGrupo;
+
+import java.util.ArrayList;
+
 import org.bson.Document;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 
-public class ColIteration implements Runnable {
+public class ColIteration {
 
 	private MongoCollection<Document> colOrigin;
 	private MongoCollection<Document> colDestin;
 
-	private Thread thread;
 
 	public ColIteration(MongoCollection<Document> colOrigin, MongoCollection<Document> colDestin) {
 		this.colDestin = colDestin;
 		this.colOrigin = colOrigin;
+		run();
 
-		thread = new Thread(this);
-		thread.start();
+	}
+
+	public void run() {
+		MongoCursor<Document> cursor = colOrigin.find().iterator();
+//		colDestin.drop();
+		BasicDBObject document = new BasicDBObject();
+//		colDestin.deleteMany(document);
+System.out.println("OLA");
+		Document doc = new Document();
+		
+		while (cursor.hasNext()) {
+			doc = cursor.next();
+			String row, t = "";
+			row = doc.toJson();
+//			t = separateDate(row);
+			doc.clear();
+			System.out.println(doc.parse(row));
+//			Connections.colDestin.insertOne(doc.parse(t));
+			colDestin.insertOne(doc.parse(row));
+
+		}
 
 	}
 
@@ -31,28 +54,6 @@ public class ColIteration implements Runnable {
 		String t = String.join(j, campos);
 		return t;
 
-	}
-
-	@Override
-	public void run() {
-		MongoCursor<Document> cursor = colOrigin.find().iterator();
-		colDestin.drop();
-		BasicDBObject document = new BasicDBObject();
-		colDestin.deleteMany(document);
-		
-		Document doc = new Document();
-		while (true) {
-			doc = cursor.next();
-			String row, t = "";
-			row = doc.toJson();
-			t = separateDate(row);
-			doc.clear();
-			System.out.println(doc.parse(t));
-//			Connections.colDestin.insertOne(doc.parse(t));
-			colDestin.insertOne(doc.parse(t));
-			
-		}
-		
 	}
 
 }

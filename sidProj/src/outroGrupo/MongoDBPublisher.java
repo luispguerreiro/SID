@@ -1,6 +1,7 @@
 package outroGrupo;
 
 import org.bson.Document;
+import nosso.ColIterationtest;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
@@ -44,6 +45,7 @@ public class MongoDBPublisher {
 		connectToMongoSid();
 		connectToMongoGroup();
 		assignCol();
+		colIterations();
 		System.out.println(sid_mongo_database);
 	}
 
@@ -117,6 +119,11 @@ public class MongoDBPublisher {
 		System.out.println("Conexão estabelecida com sucesso a " + mongo_address);
 
 //		colIterations();
+	}
+	
+	public void colIterations() {
+		ColIterationtest c = new ColIterationtest(colSidt1, colZona1);
+		
 	}
 
 	public static void main(String[] args) {
