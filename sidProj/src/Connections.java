@@ -12,6 +12,7 @@ public class Connections {
 	/**
 	 * mongoIniFile -> path to the ini file, sqlIniFile -> path to the ini file
 	 * sql_user -> sql user authentication, sql_pwd -> sql user password
+	 * 
 	 */
 
 	private String mongoIniFile = "C:\\Users\\henri\\Dropbox\\iscte\\3ºAno\\2ºSemestre\\Proj Integracao Sistemas Inf Distribuidos\\dbtools(3)\\dbtools\\CloudToMongoReplica.ini";
@@ -31,6 +32,7 @@ public class Connections {
 		constants = new Constants();
 		constants.assignConstants();
 //		colIterations();
+		connectSql();
 		connectToMongoSid();
 		connectToMongoGroup();
 
@@ -93,12 +95,13 @@ public class Connections {
 
 	public void connectSql() {
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();// Set driver
-//			connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/sid_teste", "root", "");
-			connection = DriverManager.getConnection("jdbc:mysql://194.210.86.10:3306/aluno_g19", sql_user, sql_pwd);
+//			Class.forName("com.mysql.cj.jdbc.Driver");// Set driver
+			Class.forName("com.mysql.jdbc.Driver");  
+//			connection = DriverManager.getConnection("jdbc:mysql://194.210.86.10:3306/g19", "aluno", "aluno");
+			connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/sid_teste", "root", "");
 			estado_ligacao = true;
 			System.out.println("Ligacao Estabelecida ao sql : " + estado_ligacao);
-		} catch (SQLException | ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+		} catch (SQLException | ClassNotFoundException e) {
 			System.out.println("Problemas de ligacao ao sql " + e.getMessage());
 		}
 	}
