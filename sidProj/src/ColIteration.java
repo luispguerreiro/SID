@@ -52,10 +52,10 @@ public class ColIteration implements Runnable {
 //		    colDestin.find().sort(new Document("_id", -1)).limit(1);
 //		System.out.println(colDestin.find().sort(new Document("_id", -1)).limit(1));
 
-			List<Document> l1 = colOrigin.find(Filters.gte("_id", o.get("_id"))).into(new ArrayList<>());
+			List<Document> l1 = colOrigin.find(Filters.gt("_id", o.get("_id"))).into(new ArrayList<>());
 			for (Document document : l1) {
-				System.out.println("ol2");
 				System.out.println(document.toJson());
+				colDestin.insertOne(document);
 			}
 		}
 //		colDestin.drop();
@@ -69,7 +69,7 @@ public class ColIteration implements Runnable {
 			row = doc.toJson();
 			t = separateDate(row);
 			doc.clear();
-//			System.out.println(doc.parse(t));
+			System.out.println("aqui");
 //			Connections.colDestin.insertOne(doc.parse(t));
 			colDestin.insertOne(doc.parse(t));
 
