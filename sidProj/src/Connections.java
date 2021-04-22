@@ -31,15 +31,15 @@ public class Connections {
 	public Connections() throws IOException {
 		constants = new Constants();
 		constants.assignConstants();
-//		colIterations();
 		connectSql();
-		connectToMongoSid();
-		connectToMongoGroup();
+		SqlDispatcher s = new SqlDispatcher(connection);
+//		connectToMongoSid();
+//		connectToMongoGroup();
 
-		for (int i = 0; i < 6; i++) {
-			Thread t = new Thread();
-			t.start();
-		}
+//		for (int i = 0; i < 6; i++) {
+//			Thread t = new Thread();
+//			t.start();
+//		}
 	}
 
 	@SuppressWarnings({ "resource" })
@@ -96,15 +96,17 @@ public class Connections {
 	public void connectSql() {
 		try {
 //			Class.forName("com.mysql.cj.jdbc.Driver");// Set driver
-			Class.forName("com.mysql.jdbc.Driver");  
+			Class.forName("com.mysql.cj.jdbc.Driver");  
 //			connection = DriverManager.getConnection("jdbc:mysql://194.210.86.10:3306/g19", "aluno", "aluno");
-			connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/sid_teste", "root", "");
+			connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/sid", "root", "");
 			estado_ligacao = true;
 			System.out.println("Ligacao Estabelecida ao sql : " + estado_ligacao);
 		} catch (SQLException | ClassNotFoundException e) {
 			System.out.println("Problemas de ligacao ao sql " + e.getMessage());
 		}
 	}
+	
+	
 
 	public static void main(String[] args) throws IOException {
 		Connections c = new Connections();

@@ -15,9 +15,6 @@ public class Worker implements Runnable {
 		thread.start();
 	}
 	
-	
-
-
 
 
 	@Override
