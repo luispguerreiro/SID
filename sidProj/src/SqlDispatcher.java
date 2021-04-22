@@ -69,8 +69,9 @@ public class SqlDispatcher implements Runnable {
 		ResultSet rs = stmt.executeQuery(
 				"Select pc.* from parametro_cultura pc, cultura c where pc.Cultura_IdCultura= c.IdCultura	and c.zona="
 						+ zona);
-		if (!rs.next())
-			System.out.println("Não existem culturas na base de dados!");
+//		if (rs.next() == false)
+//
+//			System.out.println("Não existem culturas na base de dados!");
 		while (rs.next()) {
 			numCulturasIterator(zona);
 			String id = rs.getString("Cultura_IdCultura");
@@ -90,6 +91,7 @@ public class SqlDispatcher implements Runnable {
 		while (rs.next()) {
 			System.out.println("-->" + rs.getInt("num"));
 			if (getNumCulturas(zona) != rs.getInt("num")) {
+				System.out.println(getNumCulturas(zona) + " " + rs.getInt("num"));
 				getParameters(zona).clear();
 				sqlGetCulturas(getParameters(zona), zona);
 			} else
@@ -99,9 +101,9 @@ public class SqlDispatcher implements Runnable {
 
 	public void numCulturasIterator(int zona) {
 		if (zona == 1)
-			zona1NumCulturas++;
+			++zona1NumCulturas;
 		if (zona == 2)
-			zona2NumCulturas++;
+			++zona2NumCulturas;
 	}
 
 	public int getNumCulturas(int zona) {
