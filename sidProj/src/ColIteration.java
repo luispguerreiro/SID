@@ -65,6 +65,7 @@ public class ColIteration implements Runnable {
 		MongoCursor<Document> cursor = colOrigin.find((Filters.gt("_id", lastBeforeUpdate.get("_id")))).iterator();
 
 		while (true) {
+			System.out.println("aqui");
 			FindIterable<Document> doc3 = colDestin.find().sort(Sorts.descending("_id"));
 			Document doc = doc3.first();
 

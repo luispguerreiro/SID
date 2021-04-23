@@ -10,18 +10,18 @@ public class SqlDispatcher implements Runnable {
 	private Connection connect;
 	private Connection connectCloud;
 
-	private int zona1sensorTMax = 50;
-	private int zona1sensorTMin = 0;
-	private int zona1sensorHMax = 50;
-	private int zona1sensorHMin = 0;
-	private int zona1sensorLMax = 50;
-	private int zona1sensorLMin = 0;
-	private int zona2sensorTMax = 50;
-	private int zona2sensorTMin = 0;
-	private int zona2sensorHMax = 50;
-	private int zona2sensorHMin = 0;
-	private int zona2sensorLMax = 50;
-	private int zona2sensorLMin = 0;
+	private int zona1sensorTMax;
+	private int zona1sensorTMin;
+	private int zona1sensorHMax;
+	private int zona1sensorHMin;
+	private int zona1sensorLMax;
+	private int zona1sensorLMin;
+	private int zona2sensorTMax;
+	private int zona2sensorTMin;
+	private int zona2sensorHMax;
+	private int zona2sensorHMin;
+	private int zona2sensorLMax;
+	private int zona2sensorLMin;
 
 	private ArrayList<ParametrosCultura> parametersZona1 = new ArrayList<>();
 	private ArrayList<ParametrosCultura> parametersZona2 = new ArrayList<>();
@@ -30,38 +30,59 @@ public class SqlDispatcher implements Runnable {
 	private int zona2NumCulturas;
 	private Thread thread;
 
-	public SqlDispatcher(Connection connect) {
+	private CentralWork centralWork;
+
+	public SqlDispatcher(Connection connect, Connection connectCloud, CentralWork centralWork) {
 		this.connect = connect;
-//		connectSqlCloud();
+		this.connectCloud = connectCloud;
+		this.centralWork = centralWork;
 		try {
+			getAllSensorLimits();
 			sqlGetCulturas(parametersZona1, 1);
 			sqlGetCulturas(parametersZona2, 2);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		thread = new Thread(this);
-		thread.start();
+//		thread = new Thread(this);
+//		thread.start();
 
 	}
 
-	public void connectSqlCloud() {
-		try {
-			Class.forName("com.mysql.cj.jdbc.Driver");
-			connectCloud = DriverManager.getConnection("jdbc:mysql://194.210.86.10:3306/g19", "aluno", "aluno");
-			boolean estado_ligacao = true;
-			System.out.println("Ligacao Estabelecida ao sql : " + estado_ligacao);
-		} catch (SQLException | ClassNotFoundException e) {
-			System.out.println("Problemas de ligacao ao sql " + e.getMessage());
-		}
-	}
-
-	public void cloudGetSensorLimits() throws SQLException {
+	public int cloudGetSensorMinimumLimits(int zona, String tipo) throws SQLException {
 		Statement stmt = connectCloud.createStatement();
-		ResultSet rs = stmt.executeQuery("SELECT Cultura_IdCultura FROM parametro_cultura");
+		ResultSet rs = stmt
+				.executeQuery("SELECT limiteinferior FROM sensor WHERE idzona=" + zona + " AND tipo= " + tipo);
+		int limit = 0;
 		while (rs.next()) {
-			String i = rs.getString("Cultura_IdCultura");
-			System.out.println(i + "\n");
+			limit = rs.getInt("limiteinferior");
 		}
+		return limit;
+	}
+
+	public int cloudGetSensorMaximumLimits(int zona, String tipo) throws SQLException {
+		Statement stmt = connectCloud.createStatement();
+		ResultSet rs = stmt
+				.executeQuery("SELECT limitesuperior FROM sensor WHERE idzona=" + zona + " AND tipo= " + tipo);
+		int limit = 0;
+		while (rs.next()) {
+			limit = rs.getInt("limitesuperior");
+		}
+		return limit;
+	}
+
+	public void getAllSensorLimits() throws SQLException {
+		zona1sensorTMin = cloudGetSensorMinimumLimits(1, "'T'");
+		zona1sensorHMin = cloudGetSensorMinimumLimits(1, "'H'");
+		zona1sensorLMin = cloudGetSensorMinimumLimits(1, "'L'");
+		zona2sensorTMin = cloudGetSensorMinimumLimits(2, "'T'");
+		zona2sensorHMin = cloudGetSensorMinimumLimits(2, "'H'");
+		zona2sensorLMin = cloudGetSensorMinimumLimits(2, "'L'");
+		zona1sensorTMax = cloudGetSensorMaximumLimits(1, "'T'");
+		zona1sensorHMax = cloudGetSensorMaximumLimits(1, "'H'");
+		zona1sensorLMax = cloudGetSensorMaximumLimits(1, "'L'");
+		zona2sensorTMax = cloudGetSensorMaximumLimits(2, "'T'");
+		zona2sensorHMax = cloudGetSensorMaximumLimits(2, "'H'");
+		zona2sensorLMax = cloudGetSensorMaximumLimits(2, "'L'");
 	}
 
 	public void sqlGetCulturas(ArrayList<ParametrosCultura> p, int zona) throws SQLException {
@@ -70,7 +91,6 @@ public class SqlDispatcher implements Runnable {
 				"Select pc.* from parametro_cultura pc, cultura c where pc.Cultura_IdCultura= c.IdCultura	and c.zona="
 						+ zona);
 //		if (rs.next() == false)
-//
 //			System.out.println("Não existem culturas na base de dados!");
 		while (rs.next()) {
 			numCulturasIterator(zona);
@@ -98,6 +118,8 @@ public class SqlDispatcher implements Runnable {
 				System.out.println("numero culturas igual ao anterior");
 		}
 	}
+
+	// select Hora from medicao order by IdMedicao desc limit 1;
 
 	public void numCulturasIterator(int zona) {
 		if (zona == 1)
@@ -137,8 +159,28 @@ public class SqlDispatcher implements Runnable {
 			getSQLNumberCulturas(1);
 			getSQLNumberCulturas(2);
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+
+		while (true) {
+			Statement stmt;
+			try {
+				if (!centralWork.getQueue().isEmpty()) {
+					stmt = connect.createStatement();
+					Medicao m = centralWork.getQueue().poll();
+					String timeStamp = m.getTimestamp();
+					Double medi =  m.getLeitura();
+					int sensor = m.getSensorInt();
+					int zona = m.getZonaInt();
+					String s = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
+							+ "VALUES (null, '"  +timeStamp  + "', " + medi + ", " + sensor + ", " + zona + ")";
+					System.out.println(s);
+					int rs = stmt.executeUpdate(s);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+
+			}
 		}
 
 	}

@@ -4,8 +4,11 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+import org.bson.Document;
+
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoCollection;
 
 public class Connections {
 
@@ -24,18 +27,23 @@ public class Connections {
 	private Constants constants;
 
 	private Connection connection;
+	private Connection connectCloud;
 	private boolean estado_ligacao;
 	private String sql_user = "aluno";
 	private String sql_pwd = "aluno";
+	
+	private MongoCollection<Document> colT1;
+	
+
 
 	public Connections() throws IOException {
 		constants = new Constants();
 		constants.assignConstants();
 		connectSql();
-		SqlDispatcher s = new SqlDispatcher(connection);
-//		connectToMongoSid();
-//		connectToMongoGroup();
-
+		connectSqlCloud();
+		connectToMongoSid();
+		connectToMongoGroup();
+//
 //		for (int i = 0; i < 6; i++) {
 //			Thread t = new Thread();
 //			t.start();
@@ -84,6 +92,7 @@ public class Connections {
 //		constants.assignColIterations();
 	}
 
+	
 	public void colIterations() {
 //		ColIteration t2 = new ColIteration(Constants.colSidt2, Constants.colt2);
 		ColIteration t1 = new ColIteration(Constants.colSidt1, Constants.colt1);
@@ -107,11 +116,31 @@ public class Connections {
 	}
 	
 	
+	
+	public void connectSqlCloud() {
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			connectCloud = DriverManager.getConnection("jdbc:mysql://194.210.86.10:3306/sid2021", "aluno", "aluno");
+			boolean estado_ligacao = true;
+			System.out.println("Ligacao Estabelecida ao sql : " + estado_ligacao);
+		} catch (SQLException | ClassNotFoundException e) {
+			System.out.println("Problemas de ligacao ao sql " + e.getMessage());
+		}
+	}
+	
+	public Connection getConnectCloud() {
+		return connectCloud;
+	}
+	
+	public Connection getConnection() {
+		return connection;
+	}
+	
+	
 
 	public static void main(String[] args) throws IOException {
 		Connections c = new Connections();
 
-//		c.connectSql();
 	}
 
 }

@@ -91,6 +91,8 @@ public class Constants {
 			Constants.sidh2_mongo_collection = mongoProperties.getProperty("mongo_collection_sidh2");
 			Constants.sidl1_mongo_collection = mongoProperties.getProperty("mongo_collection_sidl1");
 			Constants.sidl2_mongo_collection = mongoProperties.getProperty("mongo_collection_sidl2");
+			
+			
 
 		} catch (IOException obj) {
 			System.out.println("Error reading ini file " + obj);
