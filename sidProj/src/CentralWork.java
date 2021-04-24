@@ -12,15 +12,15 @@ public class CentralWork {
 	
 	public CentralWork() throws IOException {
 		queue = new LinkedBlockingQueue();
-//		try {
+		try {
 			c = new Connections();
-//			s = new SqlDispatcher(c.getConnection(), c.getConnectCloud(), this);
-//			Worker worker = new Worker(Constants.colt1, "T1", this);
-//			System.out.println("AAA");
-//			s.run();
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
+			s = new SqlDispatcher(c.getConnection(), c.getConnectCloud(), this);
+			Worker worker = new Worker(Constants.colt1, "T1", this);
+			System.out.println("AAA");
+			s.run();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		
 	}
 	

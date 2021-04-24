@@ -1,5 +1,4 @@
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -167,11 +166,11 @@ public class SqlDispatcher implements Runnable {
 			try {
 				if (!centralWork.getQueue().isEmpty()) {
 					stmt = connect.createStatement();
-					Medicao m = centralWork.getQueue().poll();
-					String timeStamp = m.getTimestamp();
-					Double medi =  m.getLeitura();
-					int sensor = m.getSensorInt();
-					int zona = m.getZonaInt();
+					Medicao medicao = centralWork.getQueue().poll();
+					String timeStamp = medicao.getTimestamp();
+					Double medi =  medicao.getLeitura();
+					int sensor = medicao.getSensorInt();
+					int zona = medicao.getZonaInt();
 					String s = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
 							+ "VALUES (null, '"  +timeStamp  + "', " + medi + ", " + sensor + ", " + zona + ")";
 					System.out.println(s);
@@ -234,7 +233,6 @@ public class SqlDispatcher implements Runnable {
 	}
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 
 	}
 

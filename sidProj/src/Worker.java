@@ -32,7 +32,6 @@ public class Worker implements Runnable {
 						doc.getString("Sensor"), doc.getString("Zona")));
 			}
 		}
-
 	}
 
 	public static void main(String[] args) {

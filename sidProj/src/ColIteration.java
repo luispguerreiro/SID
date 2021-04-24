@@ -1,9 +1,13 @@
-import java.util.ArrayList;
-import java.util.List;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
+import java.util.Date;
 
 import org.bson.Document;
 
-import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -41,36 +45,43 @@ public class ColIteration implements Runnable {
 
 	@Override
 	public void run() {
+		
 		MongoCursor<Document> cursorFirst = colDestin.find().iterator();
 		FindIterable<Document> doc1 = colDestin.find().sort(Sorts.descending("_id"));
+		MongoCursor<Document> cursor;
 		Document last = doc1.first();
-		if (last != null) {
-			last.toString();
-			System.out.println(last.get("_id"));
-
-			List<Document> l1 = colOrigin.find(Filters.gt("_id", last.get("_id"))).into(new ArrayList<>());
-			for (Document document : l1) {
-				String row, t = "";
-				row = document.toJson();
-				t = separateDate(row);
-				document.clear();
-				colDestin.insertOne(document.parse(t));
-				System.out.println(document.parse(t));
-			}
-		}
-
-		FindIterable<Document> doc2 = colDestin.find().sort(Sorts.descending("_id"));
-		Document lastBeforeUpdate = doc2.first();
-
-		MongoCursor<Document> cursor = colOrigin.find((Filters.gt("_id", lastBeforeUpdate.get("_id")))).iterator();
-
+//		if (last != null) {
+//			last.toString();
+//			System.out.println(last.get("_id"));
+//
+//			List<Document> l1 = colOrigin.find(Filters.gt("_id", last.get("_id"))).into(new ArrayList<>());
+//			for (Document document : l1) {
+//				String row, t = "";
+//				row = document.toJson();
+//				t = separateDate(row);
+//				document.clear();
+//				colDestin.insertOne(document.parse(t));
+//				System.out.println(document.parse(t));
+//			}
+//
+//			FindIterable<Document> doc2 = colDestin.find().sort(Sorts.descending("_id"));
+//			Document lastBeforeUpdate = doc2.first();
+//
+//			cursor = colOrigin.find((Filters.gt("_id", lastBeforeUpdate.get("_id")))).iterator();
+//		}
+		cursor = colOrigin.find((Filters.gt("Data", LocalDateTime.now().minusHours(1)
+			       .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'"))))).iterator();
 		while (true) {
-			System.out.println("aqui");
-			FindIterable<Document> doc3 = colDestin.find().sort(Sorts.descending("_id"));
-			Document doc = doc3.first();
-
-			cursor = colOrigin.find((Filters.gt("_id", doc.get("_id")))).iterator();
+//			FindIterable<Document> doc3 = colDestin.find().sort(Sorts.descending("_id"));
+//			Document doc = doc3.first();
+			Document doc ;
+//			(Filters.eq("Data", df.format(date))
+//			if (!(doc == null)) {
+//				cursor = colOrigin.find((Filters.gt("_id", doc.get("_id")))).iterator();
+//			} else
+//				cursor = colOrigin.find().iterator();
 			if (cursor.hasNext()) {
+				System.out.println("oi");
 				doc = cursor.next();
 				String row, t = "";
 				row = doc.toJson();
@@ -79,9 +90,15 @@ public class ColIteration implements Runnable {
 				colDestin.insertOne(doc.parse(t));
 				System.out.println("--->" + doc.parse(t));
 			}
-
 		}
 
+	}
+	
+	public static void main(String[] args) {
+		
+		
+		System.out.println( LocalDateTime.now().minusHours(1)
+	       .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")));
 	}
 
 }
