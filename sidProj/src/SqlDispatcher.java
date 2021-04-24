@@ -235,5 +235,4 @@ public class SqlDispatcher implements Runnable {
 	public static void main(String[] args) {
 
 	}
-
 }

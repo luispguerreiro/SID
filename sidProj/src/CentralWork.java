@@ -17,7 +17,7 @@ public class CentralWork {
 			s = new SqlDispatcher(c.getConnection(), c.getConnectCloud(), this);
 			Worker worker = new Worker(Constants.colt1, "T1", this);
 			System.out.println("AAA");
-			s.run();
+//			s.run();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
