@@ -91,7 +91,7 @@ public class ColIteration implements Runnable {
 				t = separateDate(row);
 				doc.clear();
 				colDestin.insertOne(doc.parse(t));
-				System.out.println("->->->" + doc.parse(t));
+//				System.out.println("->->->" + doc.parse(t));
 			}
 		}
 
@@ -112,7 +112,7 @@ public class ColIteration implements Runnable {
 
 	public static void main(String[] args) {
 
-		System.out.println(LocalDateTime.now().minusHours(1).format(DateTimeFormatter.ofPattern("HH:mm:ss")));
+		System.out.println(LocalDateTime.now().minusHours(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
 	}
 
 }

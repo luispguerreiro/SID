@@ -22,9 +22,8 @@ public class Medicao {
 
 	}
 	
-	public int getSensorInt() {
-		return Integer.parseInt(sensor.substring(1));
-
+	public String getSensorLetter() {
+		return sensor.substring(0,1);
 	}
 
 	public double getLeitura() {
@@ -33,6 +32,11 @@ public class Medicao {
 
 	public String getSensor() {
 		return sensor;
+	}
+	
+	public static void main(String[] args) {
+		
+		System.out.println(("T1").substring(0,1));
 	}
 
 }

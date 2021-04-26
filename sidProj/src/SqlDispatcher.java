@@ -2,25 +2,14 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 public class SqlDispatcher implements Runnable {
 
 	private Connection connect;
 	private Connection connectCloud;
-
-	private int zona1sensorTMax;
-	private int zona1sensorTMin;
-	private int zona1sensorHMax;
-	private int zona1sensorHMin;
-	private int zona1sensorLMax;
-	private int zona1sensorLMin;
-	private int zona2sensorTMax;
-	private int zona2sensorTMin;
-	private int zona2sensorHMax;
-	private int zona2sensorHMin;
-	private int zona2sensorLMax;
-	private int zona2sensorLMin;
 
 	private ArrayList<ParametrosCultura> parametersZona1 = new ArrayList<>();
 	private ArrayList<ParametrosCultura> parametersZona2 = new ArrayList<>();
@@ -37,6 +26,7 @@ public class SqlDispatcher implements Runnable {
 		this.centralWork = centralWork;
 		try {
 			getAllSensorLimits();
+			getAllSensorLastMedicao();
 			sqlGetCulturas(parametersZona1, 1);
 			sqlGetCulturas(parametersZona2, 2);
 		} catch (SQLException e) {
@@ -47,21 +37,21 @@ public class SqlDispatcher implements Runnable {
 
 	}
 
-	public int cloudGetSensorMinimumLimits(int zona, String tipo) throws SQLException {
+	public double cloudGetSensorMinimumLimits(int zona, String tipoSensor) throws SQLException {
 		Statement stmt = connectCloud.createStatement();
 		ResultSet rs = stmt
-				.executeQuery("SELECT limiteinferior FROM sensor WHERE idzona=" + zona + " AND tipo= " + tipo);
-		int limit = 0;
+				.executeQuery("SELECT limiteinferior FROM sensor WHERE idzona=" + zona + " AND tipo= " + tipoSensor);
+		double limit = 0;
 		while (rs.next()) {
 			limit = rs.getInt("limiteinferior");
 		}
 		return limit;
 	}
 
-	public int cloudGetSensorMaximumLimits(int zona, String tipo) throws SQLException {
+	public int cloudGetSensorMaximumLimits(int zona, String tipoSensor) throws SQLException {
 		Statement stmt = connectCloud.createStatement();
 		ResultSet rs = stmt
-				.executeQuery("SELECT limitesuperior FROM sensor WHERE idzona=" + zona + " AND tipo= " + tipo);
+				.executeQuery("SELECT limitesuperior FROM sensor WHERE idzona=" + zona + " AND tipo= " + tipoSensor);
 		int limit = 0;
 		while (rs.next()) {
 			limit = rs.getInt("limitesuperior");
@@ -69,19 +59,46 @@ public class SqlDispatcher implements Runnable {
 		return limit;
 	}
 
+	public String sqlGetLastMedicao(int zona, String tipoSensor) throws SQLException {
+		Statement stmt = connect.createStatement();
+		ResultSet rs = stmt.executeQuery("select Hora from medicao where medicao.sensor= '" + tipoSensor
+				+ "' and medicao.zona " + " = " + zona + " order by IdMedicao desc LIMIT 0, 1");
+		String date = "";
+			if (rs.next()) {
+				date = rs.getString("Hora");
+		}
+		else {
+			date = LocalDateTime.now().minusHours(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+			
+		}
+		return date;
+
+	}
+
+	public void getAllSensorLastMedicao() throws SQLException {
+		centralWork.setZona1sensorTLastMedicao(sqlGetLastMedicao(1, "T"));
+		centralWork.setZona1sensorHLastMedicao(sqlGetLastMedicao(1, "H"));
+		centralWork.setZona1sensorLLastMedicao(sqlGetLastMedicao(1, "L"));
+		centralWork.setZona2sensorLLastMedicao(sqlGetLastMedicao(2, "L"));
+		centralWork.setZona2sensorHLastMedicao(sqlGetLastMedicao(2, "H"));
+		centralWork.setZona2sensorTLastMedicao(sqlGetLastMedicao(2, "T"));
+
+	}
+
 	public void getAllSensorLimits() throws SQLException {
-		zona1sensorTMin = cloudGetSensorMinimumLimits(1, "'T'");
-		zona1sensorHMin = cloudGetSensorMinimumLimits(1, "'H'");
-		zona1sensorLMin = cloudGetSensorMinimumLimits(1, "'L'");
-		zona2sensorTMin = cloudGetSensorMinimumLimits(2, "'T'");
-		zona2sensorHMin = cloudGetSensorMinimumLimits(2, "'H'");
-		zona2sensorLMin = cloudGetSensorMinimumLimits(2, "'L'");
-		zona1sensorTMax = cloudGetSensorMaximumLimits(1, "'T'");
-		zona1sensorHMax = cloudGetSensorMaximumLimits(1, "'H'");
-		zona1sensorLMax = cloudGetSensorMaximumLimits(1, "'L'");
-		zona2sensorTMax = cloudGetSensorMaximumLimits(2, "'T'");
-		zona2sensorHMax = cloudGetSensorMaximumLimits(2, "'H'");
-		zona2sensorLMax = cloudGetSensorMaximumLimits(2, "'L'");
+		centralWork.setZona1sensorTMin(cloudGetSensorMinimumLimits(1, "'T'"));
+		centralWork.setZona1sensorHMin(cloudGetSensorMinimumLimits(1, "'H'"));
+		centralWork.setZona1sensorLMin(cloudGetSensorMinimumLimits(1, "'L'"));
+		centralWork.setZona2sensorTMin(cloudGetSensorMinimumLimits(2, "'T'"));
+		centralWork.setZona2sensorHMin(cloudGetSensorMinimumLimits(2, "'H'"));
+		centralWork.setZona2sensorLMin(cloudGetSensorMinimumLimits(2, "'L'"));
+		centralWork.setZona1sensorTMax(cloudGetSensorMaximumLimits(1, "'T'"));
+		centralWork.setZona1sensorHMax(cloudGetSensorMaximumLimits(1, "'H'"));
+		centralWork.setZona1sensorLMax(cloudGetSensorMaximumLimits(1, "'L'"));
+		centralWork.setZona2sensorTMax(cloudGetSensorMaximumLimits(2, "'T'"));
+		centralWork.setZona2sensorHMax(cloudGetSensorMaximumLimits(2, "'H'"));
+		centralWork.setZona2sensorLMax(cloudGetSensorMaximumLimits(2, "'L'"));
+		System.out.println("**Já guardei todos os valores max e min dos sensores!**");
 	}
 
 	public void sqlGetCulturas(ArrayList<ParametrosCultura> p, int zona) throws SQLException {
@@ -96,7 +113,7 @@ public class SqlDispatcher implements Runnable {
 			String id = rs.getString("Cultura_IdCultura");
 			p.add(new ParametrosCultura(rs.getInt("Cultura_IdCultura"), rs.getDouble("Temp_Min"),
 					rs.getDouble("Temp_Max"), rs.getDouble("Luminosidade_Min"), rs.getDouble("Luminosidade_Max"),
-					rs.getDouble("Humidade_Min"), rs.getDouble("Huminade_Max")));
+					rs.getDouble("Humidade_Min"), rs.getDouble("Humidade_Max")));
 		}
 	}
 
@@ -118,7 +135,6 @@ public class SqlDispatcher implements Runnable {
 		}
 	}
 
-	// select Hora from medicao order by IdMedicao desc limit 1;
 
 	public void numCulturasIterator(int zona) {
 		if (zona == 1)
@@ -168,68 +184,23 @@ public class SqlDispatcher implements Runnable {
 					stmt = connect.createStatement();
 					Medicao medicao = centralWork.getQueue().poll();
 					String timeStamp = medicao.getTimestamp();
-					Double medi =  medicao.getLeitura();
-					int sensor = medicao.getSensorInt();
+					Double medi = medicao.getLeitura();
+					String sensor = medicao.getSensorLetter();
 					int zona = medicao.getZonaInt();
 					String s = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
-							+ "VALUES (null, '"  +timeStamp  + "', " + medi + ", " + sensor + ", " + zona + ")";
+							+ "VALUES (null, '" + timeStamp + "', " + medi + ", '" + sensor + "', " + zona + ")";
 					System.out.println(s);
 					int rs = stmt.executeUpdate(s);
 				}
-			} catch (SQLException e) {
+				else {
+					Thread.sleep(1000);
+				}
+			} catch (SQLException | InterruptedException e) {
 				e.printStackTrace();
 
 			}
 		}
 
-	}
-
-	public int getZona1sensorTMax() {
-		return zona1sensorTMax;
-	}
-
-	public int getZona1sensorTMin() {
-		return zona1sensorTMin;
-	}
-
-	public int getZona1sensorHMax() {
-		return zona1sensorHMax;
-	}
-
-	public int getZona1sensorHMin() {
-		return zona1sensorHMin;
-	}
-
-	public int getZona1sensorLMax() {
-		return zona1sensorLMax;
-	}
-
-	public int getZona1sensorLMin() {
-		return zona1sensorLMin;
-	}
-
-	public int getZona2sensorTMax() {
-		return zona2sensorTMax;
-	}
-
-	public int getZona2sensorTMin() {
-		return zona2sensorTMin;
-	}
-
-	public int getZona2sensorHMax() {
-		return zona2sensorHMax;
-	}
-
-	public int getZona2sensorHMin() {
-		return zona2sensorHMin;
-	}
-
-	public int getZona2sensorLMax() {
-		return zona2sensorLMax;
-	}
-
-	public int getZona2sensorLMin() {
-		return zona2sensorLMin;
 	}
 
 	public static void main(String[] args) {
