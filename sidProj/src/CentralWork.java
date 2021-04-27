@@ -39,6 +39,7 @@ public class CentralWork {
 	
 	public CentralWork() throws IOException {
 		medicaoQueue = new LinkedBlockingQueue();
+		alertaQueue = new LinkedBlockingQueue();
 					c = new Connections();
 					s = new SqlDispatcher(c.getConnection(), c.getConnectCloud(), this);
 					Worker worker = new Worker(Constants.colt1, "T", 1, this);

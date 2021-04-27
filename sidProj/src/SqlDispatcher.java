@@ -10,7 +10,7 @@ public class SqlDispatcher implements Runnable {
 
 	private Connection connect;
 	private Connection connectCloud;
-	
+
 	private int lastMedicaoId;
 
 	private int zona1NumCulturas;
@@ -64,12 +64,11 @@ public class SqlDispatcher implements Runnable {
 		ResultSet rs = stmt.executeQuery("select Hora from medicao where medicao.sensor= '" + tipoSensor
 				+ "' and medicao.zona " + " = " + zona + " order by IdMedicao desc LIMIT 0, 1");
 		String date = "";
-			if (rs.next()) {
-				date = rs.getString("Hora");
-		}
-		else {
+		if (rs.next()) {
+			date = rs.getString("Hora");
+		} else {
 			date = LocalDateTime.now().minusHours(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-			
+
 		}
 		return date;
 
@@ -100,8 +99,6 @@ public class SqlDispatcher implements Runnable {
 		centralWork.setZona2sensorLMax(cloudGetSensorMaximumLimits(2, "'L'"));
 		System.out.println("**Já guardei todos os valores max e min dos sensores!**");
 	}
-	
-
 
 	public void sqlGetCulturas(ArrayList<ParametrosCultura> p, int zona) throws SQLException {
 		Statement stmt = connect.createStatement();
@@ -118,15 +115,14 @@ public class SqlDispatcher implements Runnable {
 					rs.getDouble("Humidade_Min"), rs.getDouble("Humidade_Max")));
 		}
 	}
-	
+
 	public void sqlGetLastMedicaoId() throws SQLException {
 		Statement stmt = connect.createStatement();
-		ResultSet rs = stmt.executeQuery(
-				"select IdMedicao from medicao order by IdMedicao desc limit 0,1");
-		if(rs.next())
-			lastMedicaoId=rs.getInt("IdMedicao")+1;
+		ResultSet rs = stmt.executeQuery("select IdMedicao from medicao order by IdMedicao desc limit 0,1");
+		if (rs.next())
+			lastMedicaoId = rs.getInt("IdMedicao") + 1;
 		else
-			lastMedicaoId=1;
+			lastMedicaoId = 1;
 	}
 
 	// cada vez que vai escrever verifica se existem mais ou menos culturas e
@@ -146,7 +142,6 @@ public class SqlDispatcher implements Runnable {
 				System.out.println("numero culturas igual ao anterior");
 		}
 	}
-
 
 	public void numCulturasIterator(int zona) {
 		if (zona == 1)
@@ -170,8 +165,6 @@ public class SqlDispatcher implements Runnable {
 		if (zona == 2)
 			zona2NumCulturas = newNumber;
 	}
-
-	
 
 	@Override
 	public void run() {
@@ -199,6 +192,12 @@ public class SqlDispatcher implements Runnable {
 					System.out.println(s);
 					int rs = stmt.executeUpdate(s);
 				}
+//				if (!centralWork.getAlertaQueue().isEmpty()) {
+//					stmt = connect.createStatement();
+//					String s = "INSERT INTO `sid`.`alerta` (`Medicao_IdMedicao`, `Cultura_IdCultura`, `IdAlerta`, `Hora_Escrita`, `TipoAlerta`, "
+//							+ "`Mensagem`, `Zona`, `Sensor`,`Hora`, `Leitura`, `Cultura`, `Email`) VALUES ("
+//					
+//				}
 				else {
 //					Thread.sleep(1000);
 				}

@@ -20,7 +20,6 @@ public class Worker implements Runnable {
 	private String lastMedicaoHora;
 	private double sensorMin;
 	private double sensorMax;
-	
 
 	private CentralWork centralWork;
 
@@ -53,18 +52,17 @@ public class Worker implements Runnable {
 //			}
 //		}
 	}
-	
-	//return true sempre que ha alerta
+
+	// return true sempre que ha alerta
 	public boolean checkMinMaxTypeSensor(ParametrosCultura p, double medicao) {
-			if(sensor.equals("T")) 
-				return (medicao>p.getTemp_max() || medicao<p.getTemp_min());
-			if(sensor.equals("H")) 
-				return (medicao>p.getHumidade_max() || medicao<p.getHumidade_min());
-			if(sensor.equals("L")) 
-				return (medicao>p.getLuminosidade_max() || medicao<p.getLuminosidade_min());
-			throw new IllegalArgumentException();
-		}
-	
+		if (sensor.equals("T"))
+			return (medicao > p.getTemp_max() || medicao < p.getTemp_min());
+		if (sensor.equals("H"))
+			return (medicao > p.getHumidade_max() || medicao < p.getHumidade_min());
+		if (sensor.equals("L"))
+			return (medicao > p.getLuminosidade_max() || medicao < p.getLuminosidade_min());
+		throw new IllegalArgumentException();
+	}
 
 	public boolean isBetween(double min, double max, double value) {
 		if (value < max && value > min)
@@ -96,22 +94,20 @@ public class Worker implements Runnable {
 				doc = cursor.next();
 
 				if (isBetween(sensorMin, sensorMax, Double.parseDouble(doc.getString("Medicao")))) {
-					
-					
+
 					for (ParametrosCultura parametro : centralWork.getParameters(zona)) {
-						if(checkMinMaxTypeSensor(parametro, Double.parseDouble(doc.getString("Medicao"))))
-							centralWork.getAlertaQueue().offer(new Alerta(parametro.getId(), "Temperatura", "Mensagem teste", zona, sensor, doc.getString("Hora")
-									, Double.parseDouble(doc.getString("Medicao"))));
-						System.out.println("new alerta added");
+						if (checkMinMaxTypeSensor(parametro, Double.parseDouble(doc.getString("Medicao")))) {
+							centralWork.getAlertaQueue()
+									.offer(new Alerta(parametro.getId(), "Temperatura", "Mensagem teste", zona, sensor,
+											doc.getString("Hora"), Double.parseDouble(doc.getString("Medicao"))));
+							System.out.println("****new alerta added**** Cultura: " + parametro.getId());
+						}
 					}
-					
-					
+
 					centralWork.getQueueMedicao()
 							.offer(new Medicao(doc.getString("Data"), doc.getString("Hora"),
 									Double.parseDouble(doc.getString("Medicao")), doc.getString("Sensor"),
 									doc.getString("Zona")));
-					
-					
 
 				}
 
