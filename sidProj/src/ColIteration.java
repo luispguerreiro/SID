@@ -67,7 +67,7 @@ public class ColIteration implements Runnable {
 				Document docdoc = docid.first();
 				System.out.println("aqui last nao era null mas vamos ver se ja existia la esse doc...");
 
-				if (docdoc != null && !docdoc.get("_id").equals(doc5.get("_id"))) {
+				if (docdoc == null ) {
 					System.out.println("aqui docdoc diferente do cursor de 1h atras");
 					System.out.println(last.get("_id") + " --- " + doc5.get("_id"));
 					String t1 = extracted(doc5);
@@ -91,7 +91,7 @@ public class ColIteration implements Runnable {
 				t = separateDate(row);
 				doc.clear();
 				colDestin.insertOne(doc.parse(t));
-//				System.out.println("->->->" + doc.parse(t));
+				System.out.println("->->->" + doc.parse(t));
 			}
 		}
 

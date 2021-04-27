@@ -1,10 +1,12 @@
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class CentralWork {
 
-	private BlockingQueue<Medicao> queue;
+	private BlockingQueue<Medicao> medicaoQueue;
+	private BlockingQueue<Alerta> alertaQueue; 
 	
 	private SqlDispatcher s;
 	
@@ -28,10 +30,15 @@ public class CentralWork {
 	private double zona2sensorLMax;
 	private double zona2sensorLMin;
 	
+	private int lastMedicaoId;
+	
+	private ArrayList<ParametrosCultura> parametersZona1 = new ArrayList<>();
+	private ArrayList<ParametrosCultura> parametersZona2 = new ArrayList<>();
+	
 	Connections c;
 	
 	public CentralWork() throws IOException {
-		queue = new LinkedBlockingQueue();
+		medicaoQueue = new LinkedBlockingQueue();
 					c = new Connections();
 					s = new SqlDispatcher(c.getConnection(), c.getConnectCloud(), this);
 					Worker worker = new Worker(Constants.colt1, "T", 1, this);
@@ -40,8 +47,12 @@ public class CentralWork {
 		
 	}
 	
-	public synchronized BlockingQueue<Medicao> getQueue() {
-		return queue;
+	public synchronized BlockingQueue<Medicao> getQueueMedicao() {
+		return medicaoQueue;
+	}
+	
+	public BlockingQueue<Alerta> getAlertaQueue() {
+		return alertaQueue;
 	}
 	
 	public double getSensorMin(String sensor, int zona) {
@@ -65,6 +76,9 @@ public class CentralWork {
 		 }
 		 throw new IllegalArgumentException("erro get sensor min");
 	}
+	
+	
+	
 	
 	public double getSensorMax(String sensor, int zona) {
 		 if(sensor.equals("T")) {
@@ -108,6 +122,30 @@ public class CentralWork {
 				 return zona2sensorHLastMedicao;
 		 }
 		 throw new IllegalArgumentException("erro get sensor min");
+	}
+	
+	public ArrayList<ParametrosCultura> getParametersZona1() {
+		return parametersZona1;
+	}
+
+	public void setParametersZona1(ArrayList<ParametrosCultura> parametersZona1) {
+		this.parametersZona1 = parametersZona1;
+	}
+
+	public ArrayList<ParametrosCultura> getParametersZona2() {
+		return parametersZona2;
+	}
+
+	public void setParametersZona2(ArrayList<ParametrosCultura> parametersZona2) {
+		this.parametersZona2 = parametersZona2;
+	}
+	
+	public ArrayList<ParametrosCultura> getParameters(int zona) {
+		if (zona == 1)
+			return parametersZona1;
+		if (zona == 2)
+			return parametersZona2;
+		throw new IllegalStateException();
 	}
 	
 	public void setZona1sensorTLastMedicao(String zona1sensorTLastMedicao) {

@@ -1,3 +1,7 @@
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+
 import org.bson.Document;
 
 import com.mongodb.client.MongoCollection;
@@ -16,6 +20,7 @@ public class Worker implements Runnable {
 	private String lastMedicaoHora;
 	private double sensorMin;
 	private double sensorMax;
+	
 
 	private CentralWork centralWork;
 
@@ -35,20 +40,31 @@ public class Worker implements Runnable {
 		System.out.println("Inicializado worker zona: " + zona + " do sensor: " + sensor);
 		thread = new Thread(this);
 		thread.start();
-		while(true) {
-			if(!thread.isAlive()) {
-				System.out.println("ressucitei");
-				thread = new Thread(this);
-				thread.start();
-			}
-			try {
-				Thread.sleep(10000);
-				System.out.println("seg");
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
+//		while(true) {
+//			if(!thread.isAlive()) {
+//				System.out.println("ressucitei");
+//				thread = new Thread(this);
+//				thread.start();
+//			}
+//			try {
+//				Thread.sleep(10000);
+//			} catch (InterruptedException e) {
+//				e.printStackTrace();
+//			}
+//		}
 	}
+	
+	//return true sempre que ha alerta
+	public boolean checkMinMaxTypeSensor(ParametrosCultura p, double medicao) {
+			if(sensor.equals("T")) 
+				return (medicao>p.getTemp_max() || medicao<p.getTemp_min());
+			if(sensor.equals("H")) 
+				return (medicao>p.getHumidade_max() || medicao<p.getHumidade_min());
+			if(sensor.equals("L")) 
+				return (medicao>p.getLuminosidade_max() || medicao<p.getLuminosidade_min());
+			throw new IllegalArgumentException();
+		}
+	
 
 	public boolean isBetween(double min, double max, double value) {
 		if (value < max && value > min)
@@ -61,8 +77,17 @@ public class Worker implements Runnable {
 	public void run() {
 
 		while (true) {
+
+			LocalDateTime.now().minusHours(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+			if (!(lastMedicaoDia.equals(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))) {
+				lastMedicaoDia = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+				lastMedicaoHora = LocalDateTime.now().minusHours(1).format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+				System.out.println("LAST MEDICAO ERA DE OUTRO DIA");
+			}
+
 			MongoCursor<Document> cursor = colLocal
-					.find(Filters.and(Filters.eq("Data", lastMedicaoDia), Filters.gt("Hora", lastMedicaoHora)))
+					.find(Filters.and((Filters.gte("Data", lastMedicaoDia)), Filters.gt("Hora", lastMedicaoHora)))
 					.iterator();
 
 			Document doc = null;
@@ -71,18 +96,29 @@ public class Worker implements Runnable {
 				doc = cursor.next();
 
 				if (isBetween(sensorMin, sensorMax, Double.parseDouble(doc.getString("Medicao")))) {
-
-					centralWork.getQueue()
+					
+					
+					for (ParametrosCultura parametro : centralWork.getParameters(zona)) {
+						if(checkMinMaxTypeSensor(parametro, Double.parseDouble(doc.getString("Medicao"))))
+							centralWork.getAlertaQueue().offer(new Alerta(parametro.getId(), "Temperatura", "Mensagem teste", zona, sensor, doc.getString("Hora")
+									, Double.parseDouble(doc.getString("Medicao"))));
+						System.out.println("new alerta added");
+					}
+					
+					
+					centralWork.getQueueMedicao()
 							.offer(new Medicao(doc.getString("Data"), doc.getString("Hora"),
 									Double.parseDouble(doc.getString("Medicao")), doc.getString("Sensor"),
 									doc.getString("Zona")));
+					
+					
+
 				}
 
 				lastMedicaoDia = doc.getString("Data");
 				lastMedicaoHora = doc.getString("Hora");
 			}
-			
-			thread.stop();
+
 		}
 	}
 

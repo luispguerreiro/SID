@@ -10,9 +10,8 @@ public class SqlDispatcher implements Runnable {
 
 	private Connection connect;
 	private Connection connectCloud;
-
-	private ArrayList<ParametrosCultura> parametersZona1 = new ArrayList<>();
-	private ArrayList<ParametrosCultura> parametersZona2 = new ArrayList<>();
+	
+	private int lastMedicaoId;
 
 	private int zona1NumCulturas;
 	private int zona2NumCulturas;
@@ -25,10 +24,11 @@ public class SqlDispatcher implements Runnable {
 		this.connectCloud = connectCloud;
 		this.centralWork = centralWork;
 		try {
+			sqlGetLastMedicaoId();
 			getAllSensorLimits();
 			getAllSensorLastMedicao();
-			sqlGetCulturas(parametersZona1, 1);
-			sqlGetCulturas(parametersZona2, 2);
+			sqlGetCulturas(centralWork.getParametersZona1(), 1);
+			sqlGetCulturas(centralWork.getParametersZona2(), 2);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -100,6 +100,8 @@ public class SqlDispatcher implements Runnable {
 		centralWork.setZona2sensorLMax(cloudGetSensorMaximumLimits(2, "'L'"));
 		System.out.println("**Já guardei todos os valores max e min dos sensores!**");
 	}
+	
+
 
 	public void sqlGetCulturas(ArrayList<ParametrosCultura> p, int zona) throws SQLException {
 		Statement stmt = connect.createStatement();
@@ -116,6 +118,16 @@ public class SqlDispatcher implements Runnable {
 					rs.getDouble("Humidade_Min"), rs.getDouble("Humidade_Max")));
 		}
 	}
+	
+	public void sqlGetLastMedicaoId() throws SQLException {
+		Statement stmt = connect.createStatement();
+		ResultSet rs = stmt.executeQuery(
+				"select IdMedicao from medicao order by IdMedicao desc limit 0,1");
+		if(rs.next())
+			lastMedicaoId=rs.getInt("IdMedicao")+1;
+		else
+			lastMedicaoId=1;
+	}
 
 	// cada vez que vai escrever verifica se existem mais ou menos culturas e
 	// escreve por cima do vetor de parametros
@@ -128,8 +140,8 @@ public class SqlDispatcher implements Runnable {
 			System.out.println("-->" + rs.getInt("num"));
 			if (getNumCulturas(zona) != rs.getInt("num")) {
 				System.out.println(getNumCulturas(zona) + " " + rs.getInt("num"));
-				getParameters(zona).clear();
-				sqlGetCulturas(getParameters(zona), zona);
+				centralWork.getParameters(zona).clear();
+				sqlGetCulturas(centralWork.getParameters(zona), zona);
 			} else
 				System.out.println("numero culturas igual ao anterior");
 		}
@@ -159,13 +171,7 @@ public class SqlDispatcher implements Runnable {
 			zona2NumCulturas = newNumber;
 	}
 
-	public ArrayList<ParametrosCultura> getParameters(int zona) {
-		if (zona == 1)
-			return parametersZona1;
-		if (zona == 2)
-			return parametersZona2;
-		throw new IllegalStateException();
-	}
+	
 
 	@Override
 	public void run() {
@@ -180,22 +186,23 @@ public class SqlDispatcher implements Runnable {
 		while (true) {
 			Statement stmt;
 			try {
-				if (!centralWork.getQueue().isEmpty()) {
+				if (!centralWork.getQueueMedicao().isEmpty()) {
+					System.out.println("LAST MEDICAO ID: "+ lastMedicaoId);
 					stmt = connect.createStatement();
-					Medicao medicao = centralWork.getQueue().poll();
+					Medicao medicao = centralWork.getQueueMedicao().poll();
 					String timeStamp = medicao.getTimestamp();
 					Double medi = medicao.getLeitura();
 					String sensor = medicao.getSensorLetter();
 					int zona = medicao.getZonaInt();
 					String s = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
-							+ "VALUES (null, '" + timeStamp + "', " + medi + ", '" + sensor + "', " + zona + ")";
+							+ "VALUES (" + lastMedicaoId++ + ", '" + timeStamp + "', " + medi + ", '" + sensor + "', " + zona + ")";
 					System.out.println(s);
 					int rs = stmt.executeUpdate(s);
 				}
 				else {
-					Thread.sleep(1000);
+//					Thread.sleep(1000);
 				}
-			} catch (SQLException | InterruptedException e) {
+			} catch (SQLException e) {
 				e.printStackTrace();
 
 			}
