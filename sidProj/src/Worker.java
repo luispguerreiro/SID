@@ -75,10 +75,7 @@ public class Worker implements Runnable {
 			double auxMax = (p.getTemp_max() - p.getTemp_min()) * percentagem;
 			double auxMin = (p.getTemp_max() - p.getTemp_min()) * (1 - percentagem);
 
-			if (auxMax + p.getTemp_min() < medicao || auxMin + p.getTemp_min() > medicao) {
-				System.out.println("**********************");
-				return true;
-			}
+			return (auxMax + p.getTemp_min() < medicao || auxMin + p.getTemp_min() > medicao);
 
 		}
 
@@ -152,35 +149,15 @@ public class Worker implements Runnable {
 ////							lastAlerta.add(a);
 //							System.out.println("****new alerta added**** Cultura: " + parametro.getId());
 //						} else {
-							if (checkAproximacaoSensor(parametro, Double.parseDouble(doc.getString("Medicao")))) {
-								a = new Alerta(doc.get("_id"), parametro.getId(), chooseTipoAlerta(),
-										" DE APROXIMAÇÃO DE VALORES", zona, sensor,
-										doc.getString("Data") + " " + doc.getString("Hora"),
-										Double.parseDouble(doc.getString("Medicao")));
-								List<Alerta> aux = new ArrayList<>(lastAlerta);
-								if (lastAlerta.isEmpty()) {
-									centralWork.getAlertaQueue().offer(a);
-									lastAlerta.add(a);
-								}else {
-									for (Alerta alerta : aux) {
-										String nowMinus5MiString = LocalDateTime.now().minusSeconds(30).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-										LocalDateTime nowMinus5Min = LocalDateTime.parse(nowMinus5MiString,
-												DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-										LocalDateTime horaAlerta = LocalDateTime.parse(alerta.getDate(),
-												DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-										if (a.getCulturaId() == parametro.getId() && horaAlerta.isBefore(nowMinus5Min)) {
-											System.out.println("Conseguimos!!!!");
-											centralWork.getAlertaQueue().offer(a);
-											System.out.println("****new alerta aproximaçao added**** Cultura: "
-													+ parametro.getId());
-											lastAlerta.remove(alerta);
-											lastAlerta.add(a);
-										}
-									}
-								}
+						if (checkAproximacaoSensor(parametro, Double.parseDouble(doc.getString("Medicao")))) {
+							a = new Alerta(doc.get("_id"), parametro.getId(), chooseTipoAlerta(),
+									" DE APROXIMAÇÃO DE VALORES", zona, sensor,
+									doc.getString("Data") + " " + doc.getString("Hora"),
+									Double.parseDouble(doc.getString("Medicao")));
+							minutesToHaveAlert(parametro, a);
 
-							}
 						}
+					}
 
 //					}
 
@@ -190,6 +167,35 @@ public class Worker implements Runnable {
 				lastMedicaoHora = doc.getString("Hora");
 			}
 
+		}
+	}
+
+	/**
+	 * @param parametro
+	 * @param a
+	 */
+	public void minutesToHaveAlert(ParametrosCultura parametro, Alerta a) {
+		List<Alerta> aux = new ArrayList<>(lastAlerta);
+		if (lastAlerta.isEmpty()) {
+			centralWork.getAlertaQueue().offer(a);
+			lastAlerta.add(a);
+		} else {
+			for (Alerta alerta : aux) {
+				String nowMinus5MiString = LocalDateTime.now().minusSeconds(15)
+						.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+				LocalDateTime nowMinus5Min = LocalDateTime.parse(nowMinus5MiString,
+						DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+				LocalDateTime horaAlerta = LocalDateTime.parse(alerta.getDate(),
+						DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+				if (a.getCulturaId() == parametro.getId() && horaAlerta.isBefore(nowMinus5Min)) {
+					System.out.println("Conseguimos!!!!");
+					centralWork.getAlertaQueue().offer(a);
+					System.out.println(
+							"\n****new alerta aproximaçao added**** Cultura: " + parametro.getId());
+					lastAlerta.remove(alerta);
+					lastAlerta.add(a);
+				}
+			}
 		}
 	}
 
