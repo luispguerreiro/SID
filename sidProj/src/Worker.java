@@ -71,6 +71,16 @@ public class Worker implements Runnable {
 			return false;
 	}
 
+	public String chooseTipoAlerta() {
+		if (sensor.equals("T"))
+			return "Temperatura";
+		if (sensor.equals("H"))
+			return "Humidade";
+		if (sensor.equals("L"))
+			return "Luminosidade";
+		throw new IllegalArgumentException();
+	}
+
 	@Override
 	public void run() {
 
@@ -95,19 +105,20 @@ public class Worker implements Runnable {
 
 				if (isBetween(sensorMin, sensorMax, Double.parseDouble(doc.getString("Medicao")))) {
 
+					centralWork.getQueueMedicao()
+							.offer(new Medicao(doc.get("_id"), doc.getString("Data"), doc.getString("Hora"),
+									Double.parseDouble(doc.getString("Medicao")), doc.getString("Sensor"),
+									doc.getString("Zona")));
+
 					for (ParametrosCultura parametro : centralWork.getParameters(zona)) {
 						if (checkMinMaxTypeSensor(parametro, Double.parseDouble(doc.getString("Medicao")))) {
 							centralWork.getAlertaQueue()
-									.offer(new Alerta(parametro.getId(), "Temperatura", "Mensagem teste", zona, sensor,
-											doc.getString("Hora"), Double.parseDouble(doc.getString("Medicao"))));
+									.offer(new Alerta(doc.get("_id"), parametro.getId(), chooseTipoAlerta(), "", zona,
+											sensor, doc.getString("Hora"),
+											Double.parseDouble(doc.getString("Medicao"))));
 							System.out.println("****new alerta added**** Cultura: " + parametro.getId());
 						}
 					}
-
-					centralWork.getQueueMedicao()
-							.offer(new Medicao(doc.getString("Data"), doc.getString("Hora"),
-									Double.parseDouble(doc.getString("Medicao")), doc.getString("Sensor"),
-									doc.getString("Zona")));
 
 				}
 

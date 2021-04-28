@@ -11,8 +11,6 @@ public class SqlDispatcher implements Runnable {
 	private Connection connect;
 	private Connection connectCloud;
 
-	private int lastMedicaoId;
-
 	private int zona1NumCulturas;
 	private int zona2NumCulturas;
 	private Thread thread;
@@ -24,7 +22,6 @@ public class SqlDispatcher implements Runnable {
 		this.connectCloud = connectCloud;
 		this.centralWork = centralWork;
 		try {
-			sqlGetLastMedicaoId();
 			getAllSensorLimits();
 			getAllSensorLastMedicao();
 			sqlGetCulturas(centralWork.getParametersZona1(), 1);
@@ -116,15 +113,6 @@ public class SqlDispatcher implements Runnable {
 		}
 	}
 
-	public void sqlGetLastMedicaoId() throws SQLException {
-		Statement stmt = connect.createStatement();
-		ResultSet rs = stmt.executeQuery("select IdMedicao from medicao order by IdMedicao desc limit 0,1");
-		if (rs.next())
-			lastMedicaoId = rs.getInt("IdMedicao") + 1;
-		else
-			lastMedicaoId = 1;
-	}
-
 	// cada vez que vai escrever verifica se existem mais ou menos culturas e
 	// escreve por cima do vetor de parametros
 	public void getSQLNumberCulturas(int zona) throws SQLException {
@@ -180,25 +168,39 @@ public class SqlDispatcher implements Runnable {
 			Statement stmt;
 			try {
 				if (!centralWork.getQueueMedicao().isEmpty()) {
-					System.out.println("LAST MEDICAO ID: "+ lastMedicaoId);
 					stmt = connect.createStatement();
 					Medicao medicao = centralWork.getQueueMedicao().poll();
+					String id = medicao.getId();
 					String timeStamp = medicao.getTimestamp();
 					Double medi = medicao.getLeitura();
 					String sensor = medicao.getSensorLetter();
 					int zona = medicao.getZonaInt();
 					String s = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
-							+ "VALUES (" + lastMedicaoId++ + ", '" + timeStamp + "', " + medi + ", '" + sensor + "', " + zona + ")";
+							+ "VALUES ('" + id + "', '" + timeStamp + "', " + medi + ", '" + sensor + "', " + zona
+							+ ")";
 					System.out.println(s);
 					int rs = stmt.executeUpdate(s);
 				}
-//				if (!centralWork.getAlertaQueue().isEmpty()) {
-//					stmt = connect.createStatement();
-//					String s = "INSERT INTO `sid`.`alerta` (`Medicao_IdMedicao`, `Cultura_IdCultura`, `IdAlerta`, `Hora_Escrita`, `TipoAlerta`, "
-//							+ "`Mensagem`, `Zona`, `Sensor`,`Hora`, `Leitura`, `Cultura`, `Email`) VALUES ("
-//					
-//				}
-				else {
+				if (!centralWork.getAlertaQueue().isEmpty()) {
+					stmt = connect.createStatement();
+					Alerta alerta = centralWork.getAlertaQueue().poll();
+					String idMedicao = alerta.getMedicaoId();
+					int idCultura = alerta.getCulturaId();
+					String horaEscrita = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+					String tipoAlerta = alerta.getTipoAlerta();
+					String mensagem = alerta.getMensagem();
+					int zona = alerta.getZona();
+					String sensor = alerta.getSensor();
+					String hora = alerta.getDate();
+					double leitura = alerta.getMedicao();
+					String s = "INSERT INTO `sid`.`alerta` (`Medicao_IdMedicao`, `Cultura_IdCultura`, `IdAlerta`, `Hora_Escrita`, `TipoAlerta`, "
+							+ "`Mensagem`, `Zona`, `Sensor`,`Hora`, `Leitura`, `Cultura`, `Email`) VALUES ('"
+							+ idMedicao + "', " + idCultura + ", null, '" + horaEscrita + "', '" + tipoAlerta + "', '"
+							+ mensagem + "', " + zona + ", '" + sensor + "', '" + hora + "', " + leitura + ", null, null)";
+					System.out.println("ALERTA:" + s);
+					int rs = stmt.executeUpdate(s);
+
+				} else {
 //					Thread.sleep(1000);
 				}
 			} catch (SQLException e) {

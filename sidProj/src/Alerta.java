@@ -8,16 +8,31 @@ public class Alerta {
 	private String sensor;
 	private String date;
 	private double medicao;
+	private Object medicaoId;
 
-	public Alerta(int culturaId, String tipoAlerta, String mensagem, int zona, String sensor, String date,
-			double medicao) {
-		this.culturaId=culturaId;
-		this.tipoAlerta=tipoAlerta;
-		this.mensagem=mensagem;
-		this.zona=zona;
-		this.sensor=sensor;
-		this.date=date;
-		this.medicao=medicao;
+	public Alerta(Object medicaoId, int culturaId, String tipoAlerta, String mensagem, int zona, String sensor,
+			String date, double medicao) {
+		this.medicaoId = medicaoId;
+		this.culturaId = culturaId;
+		this.tipoAlerta = tipoAlerta;
+		this.mensagem = mensagem;
+		this.zona = zona;
+		this.sensor = sensor;
+		this.date = date;
+		this.medicao = medicao;
+		writeMensagem();
+	}
+
+	public void writeMensagem() {
+		mensagem = ("ALERTA: A cultura " + culturaId + " da zona " + zona + " atingiu uma medição de " + medicao + " no parâmetro " + tipoAlerta + " às " + date); 
+	}
+
+	public String getMedicaoId() {
+		return medicaoId.toString();
+	}
+
+	public void setMedicaoId(Object medicaoId) {
+		this.medicaoId = medicaoId;
 	}
 
 	public void setCulturaId(int culturaId) {
@@ -76,5 +91,4 @@ public class Alerta {
 		return medicao;
 	}
 
-	
 }
