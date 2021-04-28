@@ -1,3 +1,9 @@
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.util.Locale;
 
 public class Alerta {
 
@@ -20,11 +26,11 @@ public class Alerta {
 		this.sensor = sensor;
 		this.date = date;
 		this.medicao = medicao;
-		writeMensagem();
+		writeMensagem(mensagem);
 	}
-
-	public void writeMensagem() {
-		mensagem = ("ALERTA: A cultura " + culturaId + " da zona " + zona + " atingiu uma medição de " + medicao + " no parâmetro " + tipoAlerta + " às " + date); 
+	
+	public void writeMensagem(String m) {
+		mensagem = ("ALERTA"+m+": A cultura " + culturaId + " da zona " + zona + " atingiu uma medição de " + medicao + " no parâmetro " + tipoAlerta + " às " + date); 
 	}
 
 	public String getMedicaoId() {
@@ -89,6 +95,10 @@ public class Alerta {
 
 	public double getMedicao() {
 		return medicao;
+	}
+	
+	public static void main(String[] args) {
+		System.out.println(LocalDateTime.now().minusSeconds(30).toString());
 	}
 
 }

@@ -1,6 +1,8 @@
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.bson.Document;
 
@@ -20,6 +22,10 @@ public class Worker implements Runnable {
 	private String lastMedicaoHora;
 	private double sensorMin;
 	private double sensorMax;
+
+	private List<Alerta> lastAlerta = new ArrayList<>();
+
+	private final double percentagem = 0.9;
 
 	private CentralWork centralWork;
 
@@ -62,6 +68,31 @@ public class Worker implements Runnable {
 		if (sensor.equals("L"))
 			return (medicao > p.getLuminosidade_max() || medicao < p.getLuminosidade_min());
 		throw new IllegalArgumentException();
+	}
+
+	public boolean checkAproximacaoSensor(ParametrosCultura p, double medicao) {
+		if (sensor.equals("T")) {
+			double auxMax = (p.getTemp_max() - p.getTemp_min()) * percentagem;
+			double auxMin = (p.getTemp_max() - p.getTemp_min()) * (1 - percentagem);
+
+			if (auxMax + p.getTemp_min() < medicao || auxMin + p.getTemp_min() > medicao) {
+				System.out.println("**********************");
+				return true;
+			}
+
+		}
+
+		if (sensor.equals("H")) {
+			double auxMax = (p.getHumidade_max() - p.getHumidade_min()) * percentagem;
+			double auxMin = (p.getHumidade_max() - p.getHumidade_min()) * (1 - percentagem);
+			return (auxMax + p.getHumidade_min() < medicao || auxMin + p.getHumidade_min() > medicao);
+		}
+		if (sensor.equals("L")) {
+			double auxMax = (p.getLuminosidade_max() - p.getLuminosidade_min()) * percentagem;
+			double auxMin = (p.getLuminosidade_max() - p.getLuminosidade_min()) * (1 - percentagem);
+			return (auxMax + p.getLuminosidade_min() < medicao || auxMin + p.getLuminosidade_min() > medicao);
+		}
+		return false;
 	}
 
 	public boolean isBetween(double min, double max, double value) {
@@ -111,14 +142,47 @@ public class Worker implements Runnable {
 									doc.getString("Zona")));
 
 					for (ParametrosCultura parametro : centralWork.getParameters(zona)) {
-						if (checkMinMaxTypeSensor(parametro, Double.parseDouble(doc.getString("Medicao")))) {
-							centralWork.getAlertaQueue()
-									.offer(new Alerta(doc.get("_id"), parametro.getId(), chooseTipoAlerta(), "", zona,
-											sensor, doc.getString("Hora"),
-											Double.parseDouble(doc.getString("Medicao"))));
-							System.out.println("****new alerta added**** Cultura: " + parametro.getId());
+						Alerta a;
+//						if (checkMinMaxTypeSensor(parametro, Double.parseDouble(doc.getString("Medicao")))) {
+//							centralWork.getAlertaQueue()
+//									.offer(a = new Alerta(doc.get("_id"), parametro.getId(), chooseTipoAlerta(),
+//											" DE ULTRAPASSAGEM DE VALORES", zona, sensor,
+//											doc.getString("Data") + " " + doc.getString("Hora"),
+//											Double.parseDouble(doc.getString("Medicao"))));
+////							lastAlerta.add(a);
+//							System.out.println("****new alerta added**** Cultura: " + parametro.getId());
+//						} else {
+							if (checkAproximacaoSensor(parametro, Double.parseDouble(doc.getString("Medicao")))) {
+								a = new Alerta(doc.get("_id"), parametro.getId(), chooseTipoAlerta(),
+										" DE APROXIMAÇÃO DE VALORES", zona, sensor,
+										doc.getString("Data") + " " + doc.getString("Hora"),
+										Double.parseDouble(doc.getString("Medicao")));
+								List<Alerta> aux = new ArrayList<>(lastAlerta);
+								if (lastAlerta.isEmpty()) {
+									centralWork.getAlertaQueue().offer(a);
+									lastAlerta.add(a);
+								}else {
+									for (Alerta alerta : aux) {
+										String nowMinus5MiString = LocalDateTime.now().minusSeconds(30).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+										LocalDateTime nowMinus5Min = LocalDateTime.parse(nowMinus5MiString,
+												DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+										LocalDateTime horaAlerta = LocalDateTime.parse(alerta.getDate(),
+												DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+										if (a.getCulturaId() == parametro.getId() && horaAlerta.isBefore(nowMinus5Min)) {
+											System.out.println("Conseguimos!!!!");
+											centralWork.getAlertaQueue().offer(a);
+											System.out.println("****new alerta aproximaçao added**** Cultura: "
+													+ parametro.getId());
+											lastAlerta.remove(alerta);
+											lastAlerta.add(a);
+										}
+									}
+								}
+
+							}
 						}
-					}
+
+//					}
 
 				}
 
