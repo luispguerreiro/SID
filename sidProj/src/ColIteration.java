@@ -91,7 +91,7 @@ public class ColIteration implements Runnable {
 				t = separateDate(row);
 				doc.clear();
 				colDestin.insertOne(doc.parse(t));
-				System.out.println("->->->" + doc.parse(t));
+//				System.out.println("->->->" + doc.parse(t));
 			}
 		}
 
