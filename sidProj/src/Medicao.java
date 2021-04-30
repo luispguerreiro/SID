@@ -6,6 +6,8 @@ public class Medicao {
 	private String sensor;
 	private String zona;
 	private Object id;
+	private String data;
+	private String hora;
 
 	public Medicao(Object id, String data, String hora, double leitura, String sensor, String zona) {
 		this.timestamp = (data + " " + hora);
@@ -13,10 +15,20 @@ public class Medicao {
 		this.sensor = sensor;
 		this.zona = zona;
 		this.id=id;
+		this.data=data;
+		this.hora=hora;
 	}
 
 	public String getTimestamp() {
 		return timestamp;
+	}
+	
+	public String getData() {
+		return data;
+	}
+	
+	public String getHora() {
+		return hora;
 	}
 	
 	public String getId() {
