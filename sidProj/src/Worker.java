@@ -30,6 +30,8 @@ public class Worker implements Runnable {
 	private List<Medicao> anomalies = new ArrayList<>();
 
 	private final double percentagem = 0.9;
+	private final int diferencaLeituras = 2;
+	private final int numeroMedicoesToleraveis = 3;
 
 	private CentralWork centralWork;
 
@@ -119,6 +121,7 @@ public class Worker implements Runnable {
 		double lastLeitura = 0;
 		int booleano = 0;
 		int tinyint = 0;
+		int aux=0;
 		while (true) {
 
 			LocalDateTime.now().minusHours(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
@@ -144,17 +147,17 @@ public class Worker implements Runnable {
 
 					centralWork.getQueueMedicao().offer(m);
 
-					if (Math.abs(lastLeitura - m.getLeitura()) > 2 || anomalies.size() > 0) {
+					if (Math.abs(lastLeitura - m.getLeitura()) > diferencaLeituras || anomalies.size() > 0) {
+						// entra sempre que temos pelo menos 1 anomalia ja registada ou a diferenca
+						// entre a lastMedicao e a atual é>2
 						anomalies.add(m);
-						if (anomalies.size() == 4) {
-							if (Math.abs(anomalies.get(0).getLeitura() - anomalies.get(1).getLeitura()) < 1)
-								booleano++;
-							if (Math.abs(anomalies.get(1).getLeitura() - anomalies.get(2).getLeitura()) < 1)
-								booleano++;
-							if (Math.abs(anomalies.get(2).getLeitura() - anomalies.get(3).getLeitura()) < 1)
-								booleano++;
+						if (anomalies.size() == numeroMedicoesToleraveis) {
+							for (int a = 1; a < anomalies.size(); a++) {
 
-							if (booleano != 3) {
+								if (Math.abs(anomalies.get(a - 1).getLeitura() - anomalies.get(a).getLeitura()) < 1)
+									booleano++;
+							}
+							if (booleano != numeroMedicoesToleraveis - 1) {
 								anomalies.clear();
 								booleano = 0;
 								System.out.println(
@@ -171,6 +174,7 @@ public class Worker implements Runnable {
 													anomalies.get(i).getData() + " " + anomalies.get(i).getHora(),
 													anomalies.get(i).getLeitura(), tinyint);
 											centralWork.getAlertaQueue().offer(a);
+											aux=1;
 										}
 										if (checkAproximacaoSensor(parametro, anomalies.get(i).getLeitura())) {
 											a = new Alerta(anomalies.get(i).getId(), parametro.getId(),
@@ -178,65 +182,25 @@ public class Worker implements Runnable {
 													anomalies.get(i).getData() + " " + anomalies.get(i).getHora(),
 													anomalies.get(i).getLeitura(), tinyint);
 											centralWork.getAlertaQueue().offer(a);
+											aux=1;
 										}
 									}
-
 								}
-								anomalies.clear();
+								System.out.println(
+										"*********************\n******FALSA ANOMALIA******\n******É ALERTA*****");
 								booleano = 0;
-
+								tinyint=0;
+								anomalies.clear();
 							}
-
 						}
 					}
 
 					lastLeitura = m.getLeitura();
 
-					if (anomalies.size() == 0) {
-						String nowMinus5MiString2 = LocalDateTime.now().minusSeconds(16)
-								.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-						LocalDateTime nowMinus5Min2 = LocalDateTime.parse(nowMinus5MiString2,
-								DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-
-						LocalDateTime horaMedicao = LocalDateTime.parse(
-								doc.getString("Data") + " " + doc.getString("Hora"),
-								DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-
-						if (horaMedicao.isAfter(nowMinus5Min2)) {
-
-							for (ParametrosCultura parametro : centralWork.getParameters(zona)) {
-								Alerta a;
-								if (checkMinMaxTypeSensor(parametro, Double.parseDouble(doc.getString("Medicao")))) {
-									a = new Alerta(doc.get("_id"), parametro.getId(), chooseTipoAlerta(),
-											" DE ULTRAPASSAGEM DE VALORES", zona, sensor,
-											doc.getString("Data") + " " + doc.getString("Hora"),
-											Double.parseDouble(doc.getString("Medicao")), 0);
-
-									if (minutesToHaveAlert(parametro, a, lastAlertaLimite, culturaIdListLimite)) {
-										a.setEnviarAlerta(1);
-										centralWork.getAlertaQueue().offer(a);
-									} else {
-										centralWork.getAlertaQueue().offer(a);
-									}
-								} else {
-									if (checkAproximacaoSensor(parametro,
-											Double.parseDouble(doc.getString("Medicao")))) {
-										a = new Alerta(doc.get("_id"), parametro.getId(), chooseTipoAlerta(),
-												" DE APROXIMAÇÃO DE VALORES", zona, sensor,
-												doc.getString("Data") + " " + doc.getString("Hora"),
-												Double.parseDouble(doc.getString("Medicao")), 0);
-										if (minutesToHaveAlert(parametro, a, lastAlertaAproximacao,
-												culturaIdListAproximacao)) {
-											a.setEnviarAlerta(1);
-											centralWork.getAlertaQueue().offer(a);
-										} else {
-											centralWork.getAlertaQueue().offer(a);
-										}
-									}
-								}
-							}
-						}
+					if (anomalies.size() == 0 && aux==0) { // segue aqui para alertas normais
+						sendAlertas(doc);
 					}
+					
 				}
 
 				lastMedicaoDia = doc.getString("Data");
@@ -246,17 +210,50 @@ public class Worker implements Runnable {
 
 	}
 
-	public void discardAnomalies(ArrayList<Medicao> anomalies, double lastLeitura, Medicao atual) {
-		if (lastLeitura == 0)
-			return;
-		if (Math.abs(lastLeitura - atual.getLeitura()) > 2) {
-			anomalies.add(atual);
-			for (int i = 0; i < 3; i++) {
+	/**
+	 * @param doc
+	 */
+	public void sendAlertas(Document doc) {
+		String nowMinus5MiString2 = LocalDateTime.now().minusSeconds(16)
+				.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+		LocalDateTime nowMinus5Min2 = LocalDateTime.parse(nowMinus5MiString2,
+				DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
+		LocalDateTime horaMedicao = LocalDateTime.parse(doc.getString("Data") + " " + doc.getString("Hora"),
+				DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+		if (horaMedicao.isAfter(nowMinus5Min2)) {
+
+			for (ParametrosCultura parametro : centralWork.getParameters(zona)) {
+				Alerta a;
+				if (checkMinMaxTypeSensor(parametro, Double.parseDouble(doc.getString("Medicao")))) {
+					a = new Alerta(doc.get("_id"), parametro.getId(), chooseTipoAlerta(),
+							" DE ULTRAPASSAGEM DE VALORES", zona, sensor,
+							doc.getString("Data") + " " + doc.getString("Hora"),
+							Double.parseDouble(doc.getString("Medicao")), 0);
+
+					if (minutesToHaveAlert(parametro, a, lastAlertaLimite, culturaIdListLimite)) {
+						a.setEnviarAlerta(1);
+						centralWork.getAlertaQueue().offer(a);
+					} else {
+						centralWork.getAlertaQueue().offer(a);
+					}
+				} else {
+					if (checkAproximacaoSensor(parametro, Double.parseDouble(doc.getString("Medicao")))) {
+						a = new Alerta(doc.get("_id"), parametro.getId(), chooseTipoAlerta(),
+								" DE APROXIMAÇÃO DE VALORES", zona, sensor,
+								doc.getString("Data") + " " + doc.getString("Hora"),
+								Double.parseDouble(doc.getString("Medicao")), 0);
+						if (minutesToHaveAlert(parametro, a, lastAlertaAproximacao, culturaIdListAproximacao)) {
+							a.setEnviarAlerta(1);
+							centralWork.getAlertaQueue().offer(a);
+						} else {
+							centralWork.getAlertaQueue().offer(a);
+						}
+					}
+				}
 			}
-
 		}
-
 	}
 
 	/**
@@ -286,8 +283,7 @@ public class Worker implements Runnable {
 
 					if (horaAlerta.isBefore(nowMinus5Min)) {
 
-						System.out.println("Conseguimos!!!!");
-//						centralWork.getAlertaQueue().offer(a);
+						System.out.println("VERDADEIRO ALERTA PARA O USER!!!!");
 						System.out.println("\n              ****new alerta added**** Cultura: " + parametro.getId());
 						lastAlerta.remove(alerta);
 						lastAlerta.add(a);
