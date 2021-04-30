@@ -15,9 +15,14 @@ public class Alerta {
 	private String date;
 	private double medicao;
 	private Object medicaoId;
+	
+	//enviar alerta = boolean
+	
+	private int enviarAlerta;
 
 	public Alerta(Object medicaoId, int culturaId, String tipoAlerta, String mensagem, int zona, String sensor,
-			String date, double medicao) {
+			String date, double medicao, int enviarAlerta) {
+		this.enviarAlerta=enviarAlerta;
 		this.medicaoId = medicaoId;
 		this.culturaId = culturaId;
 		this.tipoAlerta = tipoAlerta;
@@ -33,6 +38,15 @@ public class Alerta {
 		mensagem = ("ALERTA"+m+": A cultura " + culturaId + " da zona " + zona + " atingiu uma medição de " + medicao + " no parâmetro " + tipoAlerta + " às " + date); 
 	}
 
+	
+	public int getEnviarAlerta() {
+		return enviarAlerta;
+	}
+	
+	public void setEnviarAlerta(int enviarAlerta) {
+		this.enviarAlerta = enviarAlerta;
+	}
+	
 	public String getMedicaoId() {
 		return medicaoId.toString();
 	}

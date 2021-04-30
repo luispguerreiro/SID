@@ -192,11 +192,12 @@ public class SqlDispatcher implements Runnable {
 					int zona = alerta.getZona();
 					String sensor = alerta.getSensor();
 					String hora = alerta.getDate();
+					int enviarAlerta = alerta.getEnviarAlerta();
 					double leitura = alerta.getMedicao();
 					String s = "INSERT INTO `sid`.`alerta` (`Medicao_IdMedicao`, `Cultura_IdCultura`, `IdAlerta`, `Hora_Escrita`, `TipoAlerta`, "
-							+ "`Mensagem`, `Zona`, `Sensor`,`Hora`, `Leitura`, `Cultura`, `Email`) VALUES ('"
+							+ "`Mensagem`, `Zona`, `Sensor`,`Hora`, `Leitura`, `Cultura`, `Email`, `enviarAlerta`) VALUES ('"
 							+ idMedicao + "', " + idCultura + ", null, '" + horaEscrita + "', '" + tipoAlerta + "', '"
-							+ mensagem + "', " + zona + ", '" + sensor + "', '" + hora + "', " + leitura + ", null, null)";
+							+ mensagem + "', " + zona + ", '" + sensor + "', '" + hora + "', " + leitura + ", null, null, " + enviarAlerta + ")";
 					System.out.println("ALERTA:" + s);
 					int rs = stmt.executeUpdate(s);
 
