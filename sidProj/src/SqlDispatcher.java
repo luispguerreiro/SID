@@ -166,6 +166,7 @@ public class SqlDispatcher implements Runnable {
 
 		while (true) {
 			Statement stmt;
+			Statement stmt2;
 			try {
 				if (!centralWork.getQueueMedicao().isEmpty()) {
 					stmt = connect.createStatement();
@@ -179,8 +180,18 @@ public class SqlDispatcher implements Runnable {
 							+ "VALUES ('" + id + "', '" + timeStamp + "', " + medi + ", '" + sensor + "', " + zona
 							+ ")";
 					System.out.println(s);
+
 					int rs = stmt.executeUpdate(s);
 				}
+//				if (!centralWork.getCulturaMedicaoQueue().isEmpty()) {
+//					stmt2 = connect.createStatement();
+//					CulturaMedicao cm = centralWork.getCulturaMedicaoQueue().poll();
+//					String statement = "INSERT INTO `sid`.`cultura_medicao` (`Medicao_IdMedicao`, `Cultura_IdCultura`) VALUES ('"
+//							+ cm.getIdMedicao() + "', " + cm.getIdCultura() + ")";
+//					System.out.println("CULTURA MEDICAO:" + statement);
+//					int rs2 = stmt2.executeUpdate(statement);
+//
+//				}
 				if (!centralWork.getAlertaQueue().isEmpty()) {
 					stmt = connect.createStatement();
 					Alerta alerta = centralWork.getAlertaQueue().poll();
@@ -197,7 +208,8 @@ public class SqlDispatcher implements Runnable {
 					String s = "INSERT INTO `sid`.`alerta` (`Medicao_IdMedicao`, `Cultura_IdCultura`, `IdAlerta`, `Hora_Escrita`, `TipoAlerta`, "
 							+ "`Mensagem`, `Zona`, `Sensor`,`Hora`, `Leitura`, `Cultura`, `Email`, `enviarAlerta`) VALUES ('"
 							+ idMedicao + "', " + idCultura + ", null, '" + horaEscrita + "', '" + tipoAlerta + "', '"
-							+ mensagem + "', " + zona + ", '" + sensor + "', '" + hora + "', " + leitura + ", null, null, " + enviarAlerta + ")";
+							+ mensagem + "', " + zona + ", '" + sensor + "', '" + hora + "', " + leitura
+							+ ", null, null, " + enviarAlerta + ")";
 					System.out.println("ALERTA:" + s);
 					int rs = stmt.executeUpdate(s);
 

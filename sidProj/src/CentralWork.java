@@ -7,6 +7,7 @@ public class CentralWork {
 
 	private BlockingQueue<Medicao> medicaoQueue;
 	private BlockingQueue<Alerta> alertaQueue; 
+	private BlockingQueue<CulturaMedicao> culturaMedicaoQueue; 
 	
 	private SqlDispatcher s;
 	
@@ -38,8 +39,9 @@ public class CentralWork {
 	Connections c;
 	
 	public CentralWork() throws IOException {
-		medicaoQueue = new LinkedBlockingQueue();
-		alertaQueue = new LinkedBlockingQueue();
+		medicaoQueue = new LinkedBlockingQueue<>();
+		alertaQueue = new LinkedBlockingQueue<>();
+		culturaMedicaoQueue= new LinkedBlockingQueue<>();
 					c = new Connections();
 					s = new SqlDispatcher(c.getConnection(), c.getConnectCloud(), this);
 					Worker worker = new Worker(Constants.colt1, "T", 1, this);
@@ -52,8 +54,12 @@ public class CentralWork {
 		return medicaoQueue;
 	}
 	
-	public BlockingQueue<Alerta> getAlertaQueue() {
+	public synchronized BlockingQueue<Alerta> getAlertaQueue() {
 		return alertaQueue;
+	}
+	
+	public synchronized BlockingQueue<CulturaMedicao> getCulturaMedicaoQueue() {
+		return culturaMedicaoQueue;
 	}
 	
 	public double getSensorMin(String sensor, int zona) {
