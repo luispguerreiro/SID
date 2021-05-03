@@ -1,3 +1,4 @@
+import java.awt.desktop.ScreenSleepEvent;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -101,7 +102,7 @@ public class SqlDispatcher implements Runnable {
 		Statement stmt = connect.createStatement();
 		ResultSet rs = stmt.executeQuery(
 				"Select pc.* from parametro_cultura pc, cultura c where pc.Cultura_IdCultura= c.IdCultura	and c.zona="
-						+ zona);
+						+ zona + " and c.Estado=1");
 //		if (rs.next() == false)
 //			System.out.println("Não existem culturas na base de dados!");
 		while (rs.next()) {
@@ -130,6 +131,28 @@ public class SqlDispatcher implements Runnable {
 				System.out.println("numero culturas igual ao anterior");
 		}
 	}
+	
+	public void checkCampoAlterado(ArrayList<ParametrosCultura> p, int zona) throws SQLException {
+		Statement stmt = connect.createStatement();
+		Statement stmt2 = connect.createStatement();
+		ResultSet rs = stmt.executeQuery("select pc.* from parametro_cultura pc, cultura where Alterado=1 and Cultura_IdCultura=cultura.IdCultura"
+				+ " and cultura.Zona=" +zona);
+		while(rs.next()) {
+			for (int i = 0; i<p.size(); i++) {
+				System.out.println("**************ID********"+ p.get(i).getId());
+				if(p.get(i).getId()==rs.getInt("Cultura_IdCultura")){
+					System.out.println("**************ID********"+ p.get(i).getId());
+					p.remove(i);
+					p.add(new ParametrosCultura(rs.getInt("Cultura_IdCultura"), rs.getDouble("Temp_Min"),
+							rs.getDouble("Temp_Max"), rs.getDouble("Luminosidade_Min"), rs.getDouble("Luminosidade_Max"),
+							rs.getDouble("Humidade_Min"), rs.getDouble("Humidade_Max")));
+					String s = "UPDATE `sid`.`parametro_cultura` SET `Alterado` = '0' WHERE (`Cultura_IdCultura` = " +rs.getInt("Cultura_IdCultura") + ")";
+					int t = stmt2.executeUpdate(s);
+					System.out.println("----------------ALTERADO----------------\n ID:" + rs.getInt("Cultura_IdCultura"));
+				}
+			}
+		}
+	}
 
 	public void numCulturasIterator(int zona) {
 		if (zona == 1)
@@ -156,15 +179,20 @@ public class SqlDispatcher implements Runnable {
 
 	@Override
 	public void run() {
-
+		
 		try {
-			getSQLNumberCulturas(1);
-			getSQLNumberCulturas(2);
-		} catch (SQLException e) {
+//			getSQLNumberCulturas(1);
+//			getSQLNumberCulturas(2);
+			thread.sleep(2000);
+//		} catch (SQLException e) {
+//			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
 		while (true) {
+			
 			Statement stmt;
 			Statement stmt2;
 			try {
@@ -179,10 +207,25 @@ public class SqlDispatcher implements Runnable {
 					String s = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
 							+ "VALUES ('" + id + "', '" + timeStamp + "', " + medi + ", '" + sensor + "', " + zona
 							+ ")";
-					System.out.println(s);
-
 					int rs = stmt.executeUpdate(s);
+					String culturaMedicao;
+					if(zona ==1) {
+						for (ParametrosCultura parameter : centralWork.getParameters(zona)) {
+							culturaMedicao = "INSERT INTO `sid`.`cultura_medicao` (`Medicao_IdMedicao`, `Cultura_IdCultura`) VALUES ('"
+									+ id + "', " + parameter.getId() + ")";
+							
+							int cMedicao= stmt.executeUpdate(culturaMedicao);
+						}
+					}
+				System.out.println(s);
+					
 				}
+//				try {
+//					Thread.sleep(100);
+//				} catch (InterruptedException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
 //				if (!centralWork.getCulturaMedicaoQueue().isEmpty()) {
 //					stmt2 = connect.createStatement();
 //					CulturaMedicao cm = centralWork.getCulturaMedicaoQueue().poll();
@@ -217,14 +260,17 @@ public class SqlDispatcher implements Runnable {
 //					Thread.sleep(1000);
 				}
 			} catch (SQLException e) {
+				
 				e.printStackTrace();
 
 			}
+			try {
+				checkCampoAlterado(centralWork.getParameters(1),1);
+				checkCampoAlterado(centralWork.getParameters(2),2);
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
 		}
-
-	}
-
-	public static void main(String[] args) {
 
 	}
 }

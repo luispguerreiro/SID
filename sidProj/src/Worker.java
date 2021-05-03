@@ -31,7 +31,7 @@ public class Worker implements Runnable {
 
 	private final double percentagem = 0.9;
 	private final int diferencaLeituras = 2;
-	private final int numeroMedicoesToleraveis = 3;
+	private final int numeroMedicoesToleraveis = 4;
 
 	private CentralWork centralWork;
 
@@ -157,52 +157,64 @@ public class Worker implements Runnable {
 //						// TODO Auto-generated catch block
 //						e.printStackTrace();
 //					}
+					String nowMinus5MiString2 = LocalDateTime.now().minusSeconds(16)
+							.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+					LocalDateTime nowMinus5Min2 = LocalDateTime.parse(nowMinus5MiString2,
+							DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-					if (Math.abs(lastLeitura - m.getLeitura()) > diferencaLeituras || anomalies.size() > 0) {
-						// entra sempre que temos pelo menos 1 anomalia ja registada ou a diferenca
-						// entre a lastMedicao e a atual é>2
-						anomalies.add(m);
-						if (anomalies.size() == numeroMedicoesToleraveis) {
-							for (int a = 1; a < anomalies.size(); a++) {
+					LocalDateTime horaMedicao = LocalDateTime.parse(doc.getString("Data") + " " + doc.getString("Hora"),
+							DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-								if (Math.abs(anomalies.get(a - 1).getLeitura() - anomalies.get(a).getLeitura()) < 1)
-									booleano++;
-							}
-							if (booleano != numeroMedicoesToleraveis - 1) {
-								anomalies.clear();
-								booleano = 0;
-								System.out.println(
-										"           ANOMALIAS        \n *********ANOMALIAS********\n ******************");
-							} else {
-								for (int i = 0; i < anomalies.size(); i++) {
-									if (i == anomalies.size() - 1)
-										tinyint = 1;
-									for (ParametrosCultura parametro : centralWork.getParameters(zona)) {
-										Alerta a;
-										if (checkMinMaxTypeSensor(parametro, anomalies.get(i).getLeitura())) {
-											a = new Alerta(anomalies.get(i).getId(), parametro.getId(),
-													chooseTipoAlerta(), " DE ULTRAPASSAGEM DE VALORES", zona, sensor,
-													anomalies.get(i).getData() + " " + anomalies.get(i).getHora(),
-													anomalies.get(i).getLeitura(), tinyint);
-											centralWork.getAlertaQueue().offer(a);
-											aux = 1;
-										} else {
-											if (checkAproximacaoSensor(parametro, anomalies.get(i).getLeitura())) {
+					if (horaMedicao.isAfter(nowMinus5Min2)) {
+						if (Math.abs(lastLeitura - m.getLeitura()) > diferencaLeituras || anomalies.size() > 0) {
+							// entra sempre que temos pelo menos 1 anomalia ja registada ou a diferenca
+							// entre a lastMedicao e a atual é>2
+							anomalies.add(m);
+							if (anomalies.size() == numeroMedicoesToleraveis) {
+								for (int a = 1; a < anomalies.size(); a++) {
+
+									if (Math.abs(anomalies.get(a - 1).getLeitura() - anomalies.get(a).getLeitura()) < 1)
+										booleano++;
+								}
+								if (booleano != numeroMedicoesToleraveis - 1) {
+									anomalies.clear();
+									booleano = 0;
+									System.out.println(
+											"           ANOMALIAS        \n *********ANOMALIAS********\n ******************");
+								} else {
+									for (int i = 0; i < anomalies.size(); i++) {
+										if (i == anomalies.size() - 1)
+											tinyint = 1;
+										for (ParametrosCultura parametro : centralWork.getParameters(zona)) {
+											Alerta a;
+											if (checkMinMaxTypeSensor(parametro, anomalies.get(i).getLeitura())) {
 												a = new Alerta(anomalies.get(i).getId(), parametro.getId(),
-														chooseTipoAlerta(), " DE APROXIMAÇÃO DE VALORES", zona, sensor,
+														chooseTipoAlerta(), " DE ULTRAPASSAGEM DE VALORES", zona,
+														sensor,
 														anomalies.get(i).getData() + " " + anomalies.get(i).getHora(),
 														anomalies.get(i).getLeitura(), tinyint);
 												centralWork.getAlertaQueue().offer(a);
 												aux = 1;
+											} else {
+												if (checkAproximacaoSensor(parametro, anomalies.get(i).getLeitura())) {
+													a = new Alerta(anomalies.get(i).getId(), parametro.getId(),
+															chooseTipoAlerta(), " DE APROXIMAÇÃO DE VALORES", zona,
+															sensor,
+															anomalies.get(i).getData() + " "
+																	+ anomalies.get(i).getHora(),
+															anomalies.get(i).getLeitura(), tinyint);
+													centralWork.getAlertaQueue().offer(a);
+													aux = 1;
+												}
 											}
 										}
 									}
+									System.out.println(
+											"*********************\n******FALSA ANOMALIA******\n******É ALERTA*****");
+									booleano = 0;
+									tinyint = 0;
+									anomalies.clear();
 								}
-								System.out.println(
-										"*********************\n******FALSA ANOMALIA******\n******É ALERTA*****");
-								booleano = 0;
-								tinyint = 0;
-								anomalies.clear();
 							}
 						}
 					}
@@ -227,9 +239,9 @@ public class Worker implements Runnable {
 	 */
 	public void sendAlertas(Document doc) {
 		String nowMinus5MiString2 = LocalDateTime.now().minusSeconds(16)
-				.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+				.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
 		LocalDateTime nowMinus5Min2 = LocalDateTime.parse(nowMinus5MiString2,
-				DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+				DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
 
 		LocalDateTime horaMedicao = LocalDateTime.parse(doc.getString("Data") + " " + doc.getString("Hora"),
 				DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
@@ -276,11 +288,11 @@ public class Worker implements Runnable {
 			List<Integer> culturaIdList) {
 		List<Alerta> aux = new ArrayList<>(lastAlerta);
 		if (lastAlerta.isEmpty() || !culturaIdList.contains(a.getCulturaId())) {
-			centralWork.getAlertaQueue().offer(a);
 			lastAlerta.add(a);
 			culturaIdList.add(a.getCulturaId());
-			System.out.println("Conseguimos!!!!");
+			System.out.println("Nao havia last alerta!!!!");
 			System.out.println("\n              ****new alerta added**** Cultura: " + parametro.getId());
+			return true;
 		} else {
 			for (Alerta alerta : aux) {
 
