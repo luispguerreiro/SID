@@ -32,6 +32,7 @@ public class Worker implements Runnable {
 	private final double percentagem = 0.9;
 	private final int diferencaLeituras = 2;
 	private final int numeroMedicoesToleraveis = 4;
+	private final int minutesToHaveAlerta = 4;
 
 	private CentralWork centralWork;
 
@@ -78,21 +79,21 @@ public class Worker implements Runnable {
 
 	public boolean checkAproximacaoSensor(ParametrosCultura p, double medicao) {
 		if (sensor.equals("T")) {
-			double auxMax = (p.getTemp_max() - p.getTemp_min()) * percentagem;
-			double auxMin = (p.getTemp_max() - p.getTemp_min()) * (1 - percentagem);
+			double auxMax = (p.getTemp_max() - p.getTemp_min()) * Constants.percentagemAviso;
+			double auxMin = (p.getTemp_max() - p.getTemp_min()) * (1 - Constants.percentagemAviso);
 
 			return (auxMax + p.getTemp_min() < medicao || auxMin + p.getTemp_min() > medicao);
 
 		}
 
 		if (sensor.equals("H")) {
-			double auxMax = (p.getHumidade_max() - p.getHumidade_min()) * percentagem;
-			double auxMin = (p.getHumidade_max() - p.getHumidade_min()) * (1 - percentagem);
+			double auxMax = (p.getHumidade_max() - p.getHumidade_min()) * Constants.percentagemAviso;
+			double auxMin = (p.getHumidade_max() - p.getHumidade_min()) * (1 - Constants.percentagemAviso);
 			return (auxMax + p.getHumidade_min() < medicao || auxMin + p.getHumidade_min() > medicao);
 		}
 		if (sensor.equals("L")) {
-			double auxMax = (p.getLuminosidade_max() - p.getLuminosidade_min()) * percentagem;
-			double auxMin = (p.getLuminosidade_max() - p.getLuminosidade_min()) * (1 - percentagem);
+			double auxMax = (p.getLuminosidade_max() - p.getLuminosidade_min()) * Constants.percentagemAviso;
+			double auxMin = (p.getLuminosidade_max() - p.getLuminosidade_min()) * (1 - Constants.percentagemAviso);
 			return (auxMax + p.getLuminosidade_min() < medicao || auxMin + p.getLuminosidade_min() > medicao);
 		}
 		return false;
@@ -166,17 +167,17 @@ public class Worker implements Runnable {
 							DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
 					if (horaMedicao.isAfter(nowMinus5Min2)) {
-						if (Math.abs(lastLeitura - m.getLeitura()) > diferencaLeituras || anomalies.size() > 0) {
+						if (Math.abs(lastLeitura - m.getLeitura()) > Constants.variacaoParaAnomalos || anomalies.size() > 0) {
 							// entra sempre que temos pelo menos 1 anomalia ja registada ou a diferenca
 							// entre a lastMedicao e a atual é>2
 							anomalies.add(m);
-							if (anomalies.size() == numeroMedicoesToleraveis) {
+							if (anomalies.size() == Constants.numeroMedicoesToleraveis) {
 								for (int a = 1; a < anomalies.size(); a++) {
 
 									if (Math.abs(anomalies.get(a - 1).getLeitura() - anomalies.get(a).getLeitura()) < 1)
 										booleano++;
 								}
-								if (booleano != numeroMedicoesToleraveis - 1) {
+								if (booleano != Constants.numeroMedicoesToleraveis - 1) {
 									anomalies.clear();
 									booleano = 0;
 									System.out.println(
@@ -296,7 +297,7 @@ public class Worker implements Runnable {
 		} else {
 			for (Alerta alerta : aux) {
 
-				String nowMinus5MiString = LocalDateTime.now().minusSeconds(15)
+				String nowMinus5MiString = LocalDateTime.now().minusSeconds(Constants.minutesToHaveAlert)
 						.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 				LocalDateTime nowMinus5Min = LocalDateTime.parse(nowMinus5MiString,
 						DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));

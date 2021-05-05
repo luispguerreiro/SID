@@ -34,11 +34,14 @@ public class Connections {
 	
 	private MongoCollection<Document> colT1;
 	
+	private CentralWork cw;
+	
 
 
-	public Connections() throws IOException {
+	public Connections(CentralWork cw) throws IOException {
+		this.cw=cw;
 		constants = new Constants();
-		constants.assignConstants();
+//		constants.assignConstants();
 		connectSql();
 		connectSqlCloud();
 		connectToMongoSid();
@@ -61,7 +64,8 @@ public class Connections {
 			str += "/?authSource=admin";
 		}
 		Constants.sid_db = new MongoClient(new MongoClientURI(str)).getDatabase(Constants.sid_mongo_database);
-		constants.assignSidCol();
+		cw.getConstants().assignSidCol();
+//		constants.assignSidCol();
 		System.out.println("Conexão estabelecida com sucesso a " + Constants.sid_mongo_address);
 
 		// AQUI TEM DE SER THREADS
@@ -83,8 +87,8 @@ public class Connections {
 			str += "/?authSource=admin";
 		}
 		Constants.db = new MongoClient(new MongoClientURI(str)).getDatabase(Constants.mongo_database);
-		constants.assignColGroup();
-		
+//		constants.assignColGroup();
+		cw.getConstants().assignColGroup();
 		System.out.println("Conexão estabelecida com sucesso a " + Constants.mongo_address);
 
 		colIterations();
@@ -136,11 +140,5 @@ public class Connections {
 		return connection;
 	}
 	
-	
-
-	public static void main(String[] args) throws IOException {
-		Connections c = new Connections();
-
-	}
 
 }

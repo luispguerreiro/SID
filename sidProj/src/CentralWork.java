@@ -36,13 +36,16 @@ public class CentralWork {
 	private ArrayList<ParametrosCultura> parametersZona1 = new ArrayList<>();
 	private ArrayList<ParametrosCultura> parametersZona2 = new ArrayList<>();
 	
+	private Constants constants;
+	
 	Connections c;
 	
 	public CentralWork() throws IOException {
+		constants = new Constants();
 		medicaoQueue = new LinkedBlockingQueue<>();
 		alertaQueue = new LinkedBlockingQueue<>();
 		culturaMedicaoQueue= new LinkedBlockingQueue<>();
-					c = new Connections();
+					c = new Connections(this);
 					s = new SqlDispatcher(c.getConnection(), c.getConnectCloud(), this);
 					Worker worker = new Worker(Constants.colt1, "T", 1, this);
 					System.out.println("AAA");
@@ -50,6 +53,9 @@ public class CentralWork {
 		
 	}
 	
+public Constants getConstants() {
+	return constants;
+}	
 	public synchronized BlockingQueue<Medicao> getQueueMedicao() {
 		return medicaoQueue;
 	}
