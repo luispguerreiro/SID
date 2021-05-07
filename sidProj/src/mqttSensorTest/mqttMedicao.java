@@ -1,11 +1,7 @@
-import java.io.Serializable;
+package mqttSensorTest;
 
-public class Medicao implements Serializable{
+public class mqttMedicao {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 3673171791867999034L;
 	private String timestamp;
 	private double leitura;
 	private String sensor;
@@ -14,7 +10,7 @@ public class Medicao implements Serializable{
 	private String data;
 	private String hora;
 
-	public Medicao(Object id, String data, String hora, double leitura, String sensor, String zona){
+	public mqttMedicao(Object id, String data, String hora, double leitura, String sensor, String zona) {
 		this.timestamp = (data + " " + hora);
 		this.leitura = leitura;
 		this.sensor = sensor;

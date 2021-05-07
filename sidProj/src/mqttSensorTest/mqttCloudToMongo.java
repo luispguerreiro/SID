@@ -29,7 +29,7 @@ import org.eclipse.paho.client.mqttv3.MqttCallback;
 // Decompiled by Procyon v0.5.36
 // 
 
-public class CloudToMongo implements MqttCallback
+public class mqttCloudToMongo implements MqttCallback
 {
     MqttClient mqttclient;
     static MongoClient mongoClient;
@@ -53,7 +53,7 @@ public class CloudToMongo implements MqttCallback
         frame.setDefaultCloseOperation(3);
         final JLabel comp = new JLabel("Data from broker: ", 0);
         comp.setPreferredSize(new Dimension(600, 30));
-        final JScrollPane comp2 = new JScrollPane(CloudToMongo.documentLabel, 22, 32);
+        final JScrollPane comp2 = new JScrollPane(mqttCloudToMongo.documentLabel, 22, 32);
         comp2.setPreferredSize(new Dimension(600, 200));
         final JButton comp3 = new JButton("Stop the program");
         frame.getContentPane().add(comp, "First");
@@ -75,31 +75,31 @@ public class CloudToMongo implements MqttCallback
         try {
             final Properties properties = new Properties();
             properties.load(new FileInputStream("C:\\Users\\henri\\Downloads\\dbtools(3) (1)\\dbtools\\CloudToMongo.ini"));
-            CloudToMongo.mongo_address = properties.getProperty("mongo_address");
-            CloudToMongo.mongo_user = properties.getProperty("mongo_user");
-            CloudToMongo.mongo_password = properties.getProperty("mongo_password");
-            CloudToMongo.mongo_replica = properties.getProperty("mongo_replica");
-            CloudToMongo.cloud_server = properties.getProperty("cloud_server");
-            CloudToMongo.cloud_topic = properties.getProperty("cloud_topic");
-            CloudToMongo.mongo_host = properties.getProperty("mongo_host");
-            CloudToMongo.mongo_database = properties.getProperty("mongo_database");
-            CloudToMongo.mongo_authentication = properties.getProperty("mongo_authentication");
-            CloudToMongo.mongo_collection = properties.getProperty("mongo_collection");
-            CloudToMongo.display_documents = properties.getProperty("display_documents");
+            mqttCloudToMongo.mongo_address = properties.getProperty("mongo_address");
+            mqttCloudToMongo.mongo_user = properties.getProperty("mongo_user");
+            mqttCloudToMongo.mongo_password = properties.getProperty("mongo_password");
+            mqttCloudToMongo.mongo_replica = properties.getProperty("mongo_replica");
+            mqttCloudToMongo.cloud_server = properties.getProperty("cloud_server");
+            mqttCloudToMongo.cloud_topic = properties.getProperty("cloud_topic");
+            mqttCloudToMongo.mongo_host = properties.getProperty("mongo_host");
+            mqttCloudToMongo.mongo_database = properties.getProperty("mongo_database");
+            mqttCloudToMongo.mongo_authentication = properties.getProperty("mongo_authentication");
+            mqttCloudToMongo.mongo_collection = properties.getProperty("mongo_collection");
+            mqttCloudToMongo.display_documents = properties.getProperty("display_documents");
         }
         catch (Exception obj) {
             System.out.println("Error reading CloudToMongo.ini file " + obj);
             JOptionPane.showMessageDialog(null, "The CloudToMongo.inifile wasn't found.", "CloudToMongo", 0);
         }
-        new CloudToMongo().connecCloud();
-        new CloudToMongo().connectMongo();
+        new mqttCloudToMongo().connecCloud();
+        new mqttCloudToMongo().connectMongo();
     }
     
     public void connecCloud() {
         try {
-            (this.mqttclient = new MqttClient(CloudToMongo.cloud_server, "CloudToMongo_" + String.valueOf(new Random().nextInt(100000)) + "_" + CloudToMongo.cloud_topic)).connect();
+            (this.mqttclient = new MqttClient(mqttCloudToMongo.cloud_server, "CloudToMongo_" + String.valueOf(new Random().nextInt(100000)) + "_" + mqttCloudToMongo.cloud_topic)).connect();
             this.mqttclient.setCallback((MqttCallback)this);
-            this.mqttclient.subscribe(CloudToMongo.cloud_topic);
+            this.mqttclient.subscribe(mqttCloudToMongo.cloud_topic);
         }
         catch (MqttException ex) {
             ex.printStackTrace();
@@ -109,23 +109,23 @@ public class CloudToMongo implements MqttCallback
     public void connectMongo() {
         final String s = new String();
         String string = "mongodb://";
-        if (CloudToMongo.mongo_authentication.equals("true")) {
-            string = string + CloudToMongo.mongo_user + ":" + CloudToMongo.mongo_password + "@";
+        if (mqttCloudToMongo.mongo_authentication.equals("true")) {
+            string = string + mqttCloudToMongo.mongo_user + ":" + mqttCloudToMongo.mongo_password + "@";
         }
-        String str = string + CloudToMongo.mongo_address;
-        if (!CloudToMongo.mongo_replica.equals("false")) {
-            if (CloudToMongo.mongo_authentication.equals("true")) {
-                str = str + "/?replicaSet=" + CloudToMongo.mongo_replica + "&authSource=admin";
+        String str = string + mqttCloudToMongo.mongo_address;
+        if (!mqttCloudToMongo.mongo_replica.equals("false")) {
+            if (mqttCloudToMongo.mongo_authentication.equals("true")) {
+                str = str + "/?replicaSet=" + mqttCloudToMongo.mongo_replica + "&authSource=admin";
             }
             else {
-                str = str + "/?replicaSet=" + CloudToMongo.mongo_replica;
+                str = str + "/?replicaSet=" + mqttCloudToMongo.mongo_replica;
             }
         }
-        else if (CloudToMongo.mongo_authentication.equals("true")) {
+        else if (mqttCloudToMongo.mongo_authentication.equals("true")) {
             str += "/?authSource=admin";
         }
-        CloudToMongo.db = new MongoClient(new MongoClientURI(str)).getDB(CloudToMongo.mongo_database);
-        CloudToMongo.mongocol = CloudToMongo.db.getCollection(CloudToMongo.mongo_collection);
+        mqttCloudToMongo.db = new MongoClient(new MongoClientURI(str)).getDB(mqttCloudToMongo.mongo_database);
+        mqttCloudToMongo.mongocol = mqttCloudToMongo.db.getCollection(mqttCloudToMongo.mongo_collection);
     }
     
     public String separateDate(String s) {
@@ -143,9 +143,9 @@ public class CloudToMongo implements MqttCallback
     
     public void messageArrived(final String s, final MqttMessage mqttMessage) throws Exception {
         try {
-            CloudToMongo.mongocol.insert(new DBObject[] { (DBObject)JSON.parse(mqttMessage.toString()) });
-            if (CloudToMongo.display_documents.equals("true")) {
-                CloudToMongo.documentLabel.append(mqttMessage.toString() + "\n");
+            mqttCloudToMongo.mongocol.insert(new DBObject[] { (DBObject)JSON.parse(mqttMessage.toString()) });
+            if (mqttCloudToMongo.display_documents.equals("true")) {
+                mqttCloudToMongo.documentLabel.append(mqttMessage.toString() + "\n");
             }
         }
         catch (Exception x) {
@@ -160,17 +160,17 @@ public class CloudToMongo implements MqttCallback
     }
     
     static {
-        CloudToMongo.mongo_user = new String();
-        CloudToMongo.mongo_password = new String();
-        CloudToMongo.mongo_address = new String();
-        CloudToMongo.cloud_server = new String();
-        CloudToMongo.cloud_topic = new String();
-        CloudToMongo.mongo_host = new String();
-        CloudToMongo.mongo_replica = new String();
-        CloudToMongo.mongo_database = new String();
-        CloudToMongo.mongo_collection = new String();
-        CloudToMongo.display_documents = new String();
-        CloudToMongo.mongo_authentication = new String();
-        CloudToMongo.documentLabel = new JTextArea("\n");
+        mqttCloudToMongo.mongo_user = new String();
+        mqttCloudToMongo.mongo_password = new String();
+        mqttCloudToMongo.mongo_address = new String();
+        mqttCloudToMongo.cloud_server = new String();
+        mqttCloudToMongo.cloud_topic = new String();
+        mqttCloudToMongo.mongo_host = new String();
+        mqttCloudToMongo.mongo_replica = new String();
+        mqttCloudToMongo.mongo_database = new String();
+        mqttCloudToMongo.mongo_collection = new String();
+        mqttCloudToMongo.display_documents = new String();
+        mqttCloudToMongo.mongo_authentication = new String();
+        mqttCloudToMongo.documentLabel = new JTextArea("\n");
     }
 }

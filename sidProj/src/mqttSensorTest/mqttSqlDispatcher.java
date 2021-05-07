@@ -1,4 +1,4 @@
-import java.awt.desktop.ScreenSleepEvent;
+package mqttSensorTest;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -6,8 +6,20 @@ import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Random;
 
-public class SqlDispatcher implements Runnable {
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+
+import com.mongodb.DBObject;
+import com.mongodb.util.JSON;
+
+public class mqttSqlDispatcher implements Runnable, MqttCallback {
+	
+	private MqttClient mqttclient;
 
 	private Connection connect;
 	private Connection connectCloud;
@@ -16,9 +28,9 @@ public class SqlDispatcher implements Runnable {
 	private int zona2NumCulturas;
 	private Thread thread;
 
-	private CentralWork centralWork;
+	private mqttCentralWork centralWork;
 
-	public SqlDispatcher(Connection connect, Connection connectCloud, CentralWork centralWork) {
+	public mqttSqlDispatcher(Connection connect, Connection connectCloud, mqttCentralWork centralWork) {
 		this.connect = connect;
 		this.connectCloud = connectCloud;
 		this.centralWork = centralWork;
@@ -34,6 +46,23 @@ public class SqlDispatcher implements Runnable {
 //		thread.start();
 
 	}
+	
+	public mqttSqlDispatcher() {
+	}
+	
+	
+	  public void connecCloud() {
+	        try {
+	            (this.mqttclient = new MqttClient("tcp://broker.mqtt-dashboard.com:1883", "MongoToCloud1234" + "pina")).connect();
+	            this.mqttclient.setCallback((MqttCallback)this);
+	            this.mqttclient.subscribe("pina");
+	            this.mqttclient.subscribe("pinaa");
+	            
+	        }
+	        catch (MqttException ex) {
+	            ex.printStackTrace();
+	        }
+	    }
 
 	public double cloudGetSensorMinimumLimits(int zona, String tipoSensor) throws SQLException {
 		Statement stmt = connectCloud.createStatement();
@@ -98,7 +127,7 @@ public class SqlDispatcher implements Runnable {
 		System.out.println("**Já guardei todos os valores max e min dos sensores!**");
 	}
 
-	public void sqlGetCulturas(ArrayList<ParametrosCultura> p, int zona) throws SQLException {
+	public void sqlGetCulturas(ArrayList<mqttParametrosCultura> p, int zona) throws SQLException {
 		Statement stmt = connect.createStatement();
 		ResultSet rs = stmt.executeQuery(
 				"Select pc.* from parametro_cultura pc, cultura c where pc.Cultura_IdCultura= c.IdCultura	and c.zona="
@@ -108,7 +137,7 @@ public class SqlDispatcher implements Runnable {
 		while (rs.next()) {
 			numCulturasIterator(zona);
 			String id = rs.getString("Cultura_IdCultura");
-			p.add(new ParametrosCultura(rs.getInt("Cultura_IdCultura"), rs.getDouble("Temp_Min"),
+			p.add(new mqttParametrosCultura(rs.getInt("Cultura_IdCultura"), rs.getDouble("Temp_Min"),
 					rs.getDouble("Temp_Max"), rs.getDouble("Luminosidade_Min"), rs.getDouble("Luminosidade_Max"),
 					rs.getDouble("Humidade_Min"), rs.getDouble("Humidade_Max")));
 		}
@@ -131,28 +160,24 @@ public class SqlDispatcher implements Runnable {
 				System.out.println("numero culturas igual ao anterior");
 		}
 	}
-
-	public void checkCampoAlterado(ArrayList<ParametrosCultura> p, int zona) throws SQLException {
+	
+	public void checkCampoAlterado(ArrayList<mqttParametrosCultura> p, int zona) throws SQLException {
 		Statement stmt = connect.createStatement();
 		Statement stmt2 = connect.createStatement();
-		ResultSet rs = stmt.executeQuery(
-				"select pc.* from parametro_cultura pc, cultura where Alterado=1 and Cultura_IdCultura=cultura.IdCultura"
-						+ " and cultura.Zona=" + zona);
-		while (rs.next()) {
-			for (int i = 0; i < p.size(); i++) {
-				System.out.println("**************ID********" + p.get(i).getId());
-				if (p.get(i).getId() == rs.getInt("Cultura_IdCultura")) {
-					System.out.println("**************ID********" + p.get(i).getId());
+		ResultSet rs = stmt.executeQuery("select pc.* from parametro_cultura pc, cultura where Alterado=1 and Cultura_IdCultura=cultura.IdCultura"
+				+ " and cultura.Zona=" +zona);
+		while(rs.next()) {
+			for (int i = 0; i<p.size(); i++) {
+				System.out.println("**************ID********"+ p.get(i).getId());
+				if(p.get(i).getId()==rs.getInt("Cultura_IdCultura")){
+					System.out.println("**************ID********"+ p.get(i).getId());
 					p.remove(i);
-					p.add(new ParametrosCultura(rs.getInt("Cultura_IdCultura"), rs.getDouble("Temp_Min"),
-							rs.getDouble("Temp_Max"), rs.getDouble("Luminosidade_Min"),
-							rs.getDouble("Luminosidade_Max"), rs.getDouble("Humidade_Min"),
-							rs.getDouble("Humidade_Max")));
-					String s = "UPDATE `sid`.`parametro_cultura` SET `Alterado` = '0' WHERE (`Cultura_IdCultura` = "
-							+ rs.getInt("Cultura_IdCultura") + ")";
+					p.add(new mqttParametrosCultura(rs.getInt("Cultura_IdCultura"), rs.getDouble("Temp_Min"),
+							rs.getDouble("Temp_Max"), rs.getDouble("Luminosidade_Min"), rs.getDouble("Luminosidade_Max"),
+							rs.getDouble("Humidade_Min"), rs.getDouble("Humidade_Max")));
+					String s = "UPDATE `sid`.`parametro_cultura` SET `Alterado` = '0' WHERE (`Cultura_IdCultura` = " +rs.getInt("Cultura_IdCultura") + ")";
 					int t = stmt2.executeUpdate(s);
-					System.out
-							.println("----------------ALTERADO----------------\n ID:" + rs.getInt("Cultura_IdCultura"));
+					System.out.println("----------------ALTERADO----------------\n ID:" + rs.getInt("Cultura_IdCultura"));
 				}
 			}
 		}
@@ -183,7 +208,7 @@ public class SqlDispatcher implements Runnable {
 
 	@Override
 	public void run() {
-
+		
 		try {
 //			getSQLNumberCulturas(1);
 //			getSQLNumberCulturas(2);
@@ -196,12 +221,13 @@ public class SqlDispatcher implements Runnable {
 		}
 
 		while (true) {
-
+			
 			Statement stmt;
+			Statement stmt2;
 			try {
 				if (!centralWork.getQueueMedicao().isEmpty()) {
 					stmt = connect.createStatement();
-					Medicao medicao = centralWork.getQueueMedicao().poll();
+					mqttMedicao medicao = centralWork.getQueueMedicao().poll();
 					String id = medicao.getId();
 					String timeStamp = medicao.getTimestamp();
 					Double medi = medicao.getLeitura();
@@ -211,25 +237,66 @@ public class SqlDispatcher implements Runnable {
 							+ "VALUES ('" + id + "', '" + timeStamp + "', " + medi + ", '" + sensor + "', " + zona
 							+ ")";
 					int rs = stmt.executeUpdate(s);
-					System.out.println(s);
 					
-					insertCulturaMedicao(stmt, id, zona); //insert into cultura_medicao for that zona
-
+					String culturaMedicao;
+					if(zona ==1) {
+						for (mqttParametrosCultura parameter : centralWork.getParameters(zona)) {
+							culturaMedicao = "INSERT INTO `sid`.`cultura_medicao` (`Medicao_IdMedicao`, `Cultura_IdCultura`) VALUES ('"
+									+ id + "', " + parameter.getId() + ")";
+							
+							int cMedicao= stmt.executeUpdate(culturaMedicao);
+						}
+					}
+				System.out.println(s);
+					
 				}
-				if (!centralWork.getAlertaQueue().isEmpty() && centralWork.getQueueMedicao().size() < 2) {
-					insertAlerta(); //insert into alerta
+//				try {
+//					Thread.sleep(100);
+//				} catch (InterruptedException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//				if (!centralWork.getCulturaMedicaoQueue().isEmpty()) {
+//					stmt2 = connect.createStatement();
+//					CulturaMedicao cm = centralWork.getCulturaMedicaoQueue().poll();
+//					String statement = "INSERT INTO `sid`.`cultura_medicao` (`Medicao_IdMedicao`, `Cultura_IdCultura`) VALUES ('"
+//							+ cm.getIdMedicao() + "', " + cm.getIdCultura() + ")";
+//					System.out.println("CULTURA MEDICAO:" + statement);
+//					int rs2 = stmt2.executeUpdate(statement);
+//
+//				}
+				if (!centralWork.getAlertaQueue().isEmpty()) {
+					stmt = connect.createStatement();
+					mqttAlerta alerta = centralWork.getAlertaQueue().poll();
+					String idMedicao = alerta.getMedicaoId();
+					int idCultura = alerta.getCulturaId();
+					String horaEscrita = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+					String tipoAlerta = alerta.getTipoAlerta();
+					String mensagem = alerta.getMensagem();
+					int zona = alerta.getZona();
+					String sensor = alerta.getSensor();
+					String hora = alerta.getDate();
+					int enviarAlerta = alerta.getEnviarAlerta();
+					double leitura = alerta.getMedicao();
+					String s = "INSERT INTO `sid`.`alerta` (`Medicao_IdMedicao`, `Cultura_IdCultura`, `IdAlerta`, `Hora_Escrita`, `TipoAlerta`, "
+							+ "`Mensagem`, `Zona`, `Sensor`,`Hora`, `Leitura`, `Cultura`, `Email`, `enviarAlerta`) VALUES ('"
+							+ idMedicao + "', " + idCultura + ", null, '" + horaEscrita + "', '" + tipoAlerta + "', '"
+							+ mensagem + "', " + zona + ", '" + sensor + "', '" + hora + "', " + leitura
+							+ ", null, null, " + enviarAlerta + ")";
+					System.out.println("ALERTA:" + s);
+					int rs = stmt.executeUpdate(s);
 
 				} else {
 //					Thread.sleep(1000);
 				}
 			} catch (SQLException e) {
-
+				
 				e.printStackTrace();
 
 			}
-			try { //sempre que insere, vem aqui e verifica se existe algum campo alterado a 1 na tabela e atualiza esses parametrosCultura
-				checkCampoAlterado(centralWork.getParameters(1), 1);
-				checkCampoAlterado(centralWork.getParameters(2), 2);
+			try {
+				checkCampoAlterado(centralWork.getParameters(1),1);
+				checkCampoAlterado(centralWork.getParameters(2),2);
 			} catch (SQLException e1) {
 				e1.printStackTrace();
 			}
@@ -237,55 +304,28 @@ public class SqlDispatcher implements Runnable {
 
 	}
 
-	/**
-	 * @param stmt
-	 * @param id
-	 * @param zona
-	 * @throws SQLException
-	 */
-	public void insertCulturaMedicao(Statement stmt, String id, int zona) throws SQLException {
-		String culturaMedicao;
-		if (zona == 1) {
-			for (ParametrosCultura parameter : centralWork.getParameters(zona)) {
-				culturaMedicao = "INSERT INTO `sid`.`cultura_medicao` (`Medicao_IdMedicao`, `Cultura_IdCultura`) VALUES ('"
-						+ id + "', " + parameter.getId() + ")";
-
-				int cMedicao = stmt.executeUpdate(culturaMedicao);
-			}
-		}
-		if (zona == 2) {
-			for (ParametrosCultura parameter : centralWork.getParameters(zona)) {
-				culturaMedicao = "INSERT INTO `sid`.`cultura_medicao` (`Medicao_IdMedicao`, `Cultura_IdCultura`) VALUES ('"
-						+ id + "', " + parameter.getId() + ")";
-
-				int cMedicao = stmt.executeUpdate(culturaMedicao);
-			}
-		}
+	@Override
+	public void connectionLost(Throwable cause) {
+		// TODO Auto-generated method stub
+		
 	}
+	@Override
+	 public void messageArrived(final String s, final MqttMessage mqttMessage) throws Exception {
+	        try {
+	        	System.out.println(mqttMessage.toString());
+	        }
+	        catch (Exception x) {
+	            System.out.println(x);
+	        }
+	    }
 
-	/**
-	 * @throws SQLException
-	 */
-	public void insertAlerta() throws SQLException {
-		Statement stmt;
-		stmt = connect.createStatement();
-		Alerta alerta = centralWork.getAlertaQueue().poll();
-		String idMedicao = alerta.getMedicaoId();
-		int idCultura = alerta.getCulturaId();
-		String horaEscrita = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-		String tipoAlerta = alerta.getTipoAlerta();
-		String mensagem = alerta.getMensagem();
-		int zona = alerta.getZona();
-		String sensor = alerta.getSensor();
-		String hora = alerta.getDate();
-		int enviarAlerta = alerta.getEnviarAlerta();
-		double leitura = alerta.getMedicao();
-		String s = "INSERT INTO `sid`.`alerta` (`Medicao_IdMedicao`, `Cultura_IdCultura`, `IdAlerta`, `Hora_Escrita`, `TipoAlerta`, "
-				+ "`Mensagem`, `Zona`, `Sensor`,`Hora`, `Leitura`, `Cultura`, `Email`, `enviarAlerta`) VALUES ('"
-				+ idMedicao + "', " + idCultura + ", null, '" + horaEscrita + "', '" + tipoAlerta + "', '" + mensagem
-				+ "', " + zona + ", '" + sensor + "', '" + hora + "', " + leitura + ", null, null, " + enviarAlerta
-				+ ")";
-		System.out.println("ALERTA:" + s);
-		int rs = stmt.executeUpdate(s);
+	@Override
+	public void deliveryComplete(IMqttDeliveryToken token) {
+		// TODO Auto-generated method stub
+		
+	}
+	public static void main(String[] args) {
+		mqttSqlDispatcher s = new mqttSqlDispatcher();
+		s.connecCloud();
 	}
 }
