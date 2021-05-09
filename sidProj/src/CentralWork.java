@@ -29,7 +29,7 @@ public class CentralWork {
 	private double zona2sensorHMax;
 	private double zona2sensorHMin;
 	private double zona2sensorLMax;
-	private double zona2sensorLMin;
+	private double zona2sensorLMin; 
 	
 	private int lastMedicaoId;
 	
