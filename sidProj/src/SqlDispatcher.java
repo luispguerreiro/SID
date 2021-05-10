@@ -109,8 +109,8 @@ public class SqlDispatcher implements Runnable {
 			numCulturasIterator(zona);
 			String id = rs.getString("Cultura_IdCultura");
 			p.add(new ParametrosCultura(rs.getInt("Cultura_IdCultura"), rs.getDouble("Temp_Min"),
-					rs.getDouble("Temp_Max"), rs.getDouble("Luminosidade_Min"), rs.getDouble("Luminosidade_Max"),
-					rs.getDouble("Humidade_Min"), rs.getDouble("Humidade_Max")));
+					rs.getDouble("Temp_Max"), rs.getDouble("Humidade_Min"), rs.getDouble("Humidade_Max"),
+					rs.getDouble("Luminosidade_Min"), rs.getDouble("Luminosidade_Max")));
 		}
 	}
 
@@ -145,9 +145,8 @@ public class SqlDispatcher implements Runnable {
 					System.out.println("**************ID********" + p.get(i).getId());
 					p.remove(i);
 					p.add(new ParametrosCultura(rs.getInt("Cultura_IdCultura"), rs.getDouble("Temp_Min"),
-							rs.getDouble("Temp_Max"), rs.getDouble("Luminosidade_Min"),
-							rs.getDouble("Luminosidade_Max"), rs.getDouble("Humidade_Min"),
-							rs.getDouble("Humidade_Max")));
+							rs.getDouble("Temp_Max"), rs.getDouble("Humidade_Min"), rs.getDouble("Humidade_Max"),
+							rs.getDouble("Luminosidade_Min"), rs.getDouble("Luminosidade_Max")));
 					String s = "UPDATE `sid`.`parametro_cultura` SET `Alterado` = '0' WHERE (`Cultura_IdCultura` = "
 							+ rs.getInt("Cultura_IdCultura") + ")";
 					int t = stmt2.executeUpdate(s);
@@ -191,7 +190,6 @@ public class SqlDispatcher implements Runnable {
 //		} catch (SQLException e) {
 //			e.printStackTrace();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -212,12 +210,12 @@ public class SqlDispatcher implements Runnable {
 							+ ")";
 					int rs = stmt.executeUpdate(s);
 					System.out.println(s);
-					
-					insertCulturaMedicao(stmt, id, zona); //insert into cultura_medicao for that zona
+
+					insertCulturaMedicao(stmt, id, zona); // insert into cultura_medicao for that zona
 
 				}
 				if (!centralWork.getAlertaQueue().isEmpty() && centralWork.getQueueMedicao().size() < 2) {
-					insertAlerta(); //insert into alerta
+					insertAlerta(); // insert into alerta
 
 				} else {
 //					Thread.sleep(1000);
@@ -227,7 +225,8 @@ public class SqlDispatcher implements Runnable {
 				e.printStackTrace();
 
 			}
-			try { //sempre que insere, vem aqui e verifica se existe algum campo alterado a 1 na tabela e atualiza esses parametrosCultura
+			try { // sempre que insere, vem aqui e verifica se existe algum campo alterado a 1 na
+					// tabela e atualiza esses parametrosCultura
 				checkCampoAlterado(centralWork.getParameters(1), 1);
 				checkCampoAlterado(centralWork.getParameters(2), 2);
 			} catch (SQLException e1) {
@@ -245,21 +244,11 @@ public class SqlDispatcher implements Runnable {
 	 */
 	public void insertCulturaMedicao(Statement stmt, String id, int zona) throws SQLException {
 		String culturaMedicao;
-		if (zona == 1) {
-			for (ParametrosCultura parameter : centralWork.getParameters(zona)) {
-				culturaMedicao = "INSERT INTO `sid`.`cultura_medicao` (`Medicao_IdMedicao`, `Cultura_IdCultura`) VALUES ('"
-						+ id + "', " + parameter.getId() + ")";
+		for (ParametrosCultura parameter : centralWork.getParameters(zona)) {
+			culturaMedicao = "INSERT INTO `sid`.`cultura_medicao` (`Medicao_IdMedicao`, `Cultura_IdCultura`) VALUES ('"
+					+ id + "', " + parameter.getId() + ")";
 
-				int cMedicao = stmt.executeUpdate(culturaMedicao);
-			}
-		}
-		if (zona == 2) {
-			for (ParametrosCultura parameter : centralWork.getParameters(zona)) {
-				culturaMedicao = "INSERT INTO `sid`.`cultura_medicao` (`Medicao_IdMedicao`, `Cultura_IdCultura`) VALUES ('"
-						+ id + "', " + parameter.getId() + ")";
-
-				int cMedicao = stmt.executeUpdate(culturaMedicao);
-			}
+			int cMedicao = stmt.executeUpdate(culturaMedicao);
 		}
 	}
 

@@ -25,7 +25,7 @@ import org.eclipse.paho.client.mqttv3.MqttCallback;
 // Decompiled by Procyon v0.5.36
 // 
 
-public class SimulateSensorHumi implements MqttCallback
+public class SimulateSensorLumi implements MqttCallback
 {
     static MqttClient mqttclient;
     static String cloud_server;
@@ -49,7 +49,7 @@ public class SimulateSensorHumi implements MqttCallback
         frame.setDefaultCloseOperation(3);
         final JLabel comp = new JLabel("Data to Cloud: ", 0);
         comp.setPreferredSize(new Dimension(600, 30));
-        final JScrollPane comp2 = new JScrollPane(SimulateSensorHumi.documentLabel, 22, 32);
+        final JScrollPane comp2 = new JScrollPane(SimulateSensorLumi.documentLabel, 22, 32);
         comp2.setPreferredSize(new Dimension(600, 200));
         final JButton comp3 = new JButton("Stop the program");
         frame.getContentPane().add(comp, "First");
@@ -70,36 +70,36 @@ public class SimulateSensorHumi implements MqttCallback
         createWindow();
         try {
             final Properties properties = new Properties();
-            properties.load(new FileInputStream("SimulateSensorHumi.ini"));
-            SimulateSensorHumi.display_documents = properties.getProperty("display_documents");
-            SimulateSensorHumi.cloud_server = properties.getProperty("cloud_server");
-            SimulateSensorHumi.cloud_topic = properties.getProperty("cloud_topic");
-            SimulateSensorHumi.delay = properties.getProperty("delay");
-            SimulateSensorHumi.zona = properties.getProperty("Zona");
-            SimulateSensorHumi.sensor = properties.getProperty("Sensor");
-            SimulateSensorHumi.valorInicial = properties.getProperty("ValorInicial");
-            SimulateSensorHumi.limiteInferior = properties.getProperty("LimiteInferior");
-            SimulateSensorHumi.limiteSuperior = properties.getProperty("LimiteSuperior");
-            SimulateSensorHumi.variacao = properties.getProperty("Variacao");
-            SimulateSensorHumi.medicoesIguais = properties.getProperty("MedicoesIguais");
-            SimulateSensorHumi.medicoesEntreSalto = properties.getProperty("MedicoesEntreSalto");
-            SimulateSensorHumi.valorSalto = properties.getProperty("ValorSalto");
-            SimulateSensorHumi.medicoesSalto = properties.getProperty("MedicoesSalto");
+            properties.load(new FileInputStream("SimulateSensorLumi.ini"));
+            SimulateSensorLumi.display_documents = properties.getProperty("display_documents");
+            SimulateSensorLumi.cloud_server = properties.getProperty("cloud_server");
+            SimulateSensorLumi.cloud_topic = properties.getProperty("cloud_topic");
+            SimulateSensorLumi.delay = properties.getProperty("delay");
+            SimulateSensorLumi.zona = properties.getProperty("Zona");
+            SimulateSensorLumi.sensor = properties.getProperty("Sensor");
+            SimulateSensorLumi.valorInicial = properties.getProperty("ValorInicial");
+            SimulateSensorLumi.limiteInferior = properties.getProperty("LimiteInferior");
+            SimulateSensorLumi.limiteSuperior = properties.getProperty("LimiteSuperior");
+            SimulateSensorLumi.variacao = properties.getProperty("Variacao");
+            SimulateSensorLumi.medicoesIguais = properties.getProperty("MedicoesIguais");
+            SimulateSensorLumi.medicoesEntreSalto = properties.getProperty("MedicoesEntreSalto");
+            SimulateSensorLumi.valorSalto = properties.getProperty("ValorSalto");
+            SimulateSensorLumi.medicoesSalto = properties.getProperty("MedicoesSalto");
         }
         catch (Exception obj) {
             System.out.println("Error reading SimulateSensor.ini file " + obj);
             JOptionPane.showMessageDialog(null, "The SimulateSensor inifile wasn't found.", "Send Cloud Sequencial ID", 0);
         }
-        new SimulateSensorHumi().connecCloud();
-        new SimulateSensorHumi().generateData();
+        new SimulateSensorLumi().connecCloud();
+        new SimulateSensorLumi().generateData();
     }
     
     public void connecCloud() {
         try {
-            (SimulateSensorHumi.mqttclient = new MqttClient(SimulateSensorHumi.cloud_server, "SimulateSensor" + this.getSaltString() + SimulateSensorHumi.cloud_topic)).connect();
-            SimulateSensorHumi.mqttclient.setCallback((MqttCallback)this);
-            SimulateSensorHumi.mqttclient.subscribe(SimulateSensorHumi.cloud_topic);
-            SimulateSensorHumi.documentLabel.append("Connection To Cloud Suceeded\n");
+            (SimulateSensorLumi.mqttclient = new MqttClient(SimulateSensorLumi.cloud_server, "SimulateSensor" + this.getSaltString() + SimulateSensorLumi.cloud_topic)).connect();
+            SimulateSensorLumi.mqttclient.setCallback((MqttCallback)this);
+            SimulateSensorLumi.mqttclient.subscribe(SimulateSensorLumi.cloud_topic);
+            SimulateSensorLumi.documentLabel.append("Connection To Cloud Suceeded\n");
         }
         catch (MqttException ex) {
             ex.printStackTrace();
@@ -107,24 +107,24 @@ public class SimulateSensorHumi implements MqttCallback
     }
     
     public void generateData() {
-        final double double1 = Double.parseDouble(SimulateSensorHumi.variacao);
-        final double double2 = Double.parseDouble(SimulateSensorHumi.medicoesEntreSalto);
-        final double double3 = Double.parseDouble(SimulateSensorHumi.limiteSuperior);
-        final double double4 = Double.parseDouble(SimulateSensorHumi.limiteInferior);
+        final double double1 = Double.parseDouble(SimulateSensorLumi.variacao);
+        final double double2 = Double.parseDouble(SimulateSensorLumi.medicoesEntreSalto);
+        final double double3 = Double.parseDouble(SimulateSensorLumi.limiteSuperior);
+        final double double4 = Double.parseDouble(SimulateSensorLumi.limiteInferior);
         final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
         final String s = new String();
         int n = 0;
         int n2 = 0;
         int n3 = 1;
-        double double5 = Double.parseDouble(SimulateSensorHumi.valorInicial);
+        double double5 = Double.parseDouble(SimulateSensorLumi.valorInicial);
         final Date date = new Date(System.currentTimeMillis());
         while (true) {
-            final String string = "{" + "Zona: \"" + SimulateSensorHumi.zona + "\", " + "Sensor: \"" + SimulateSensorHumi.sensor + "\", " + "Data: \"" + simpleDateFormat.format(new Date(System.currentTimeMillis())) + "\", " + "Medicao: \"" + double5 + "\" " + "}";
-            SimulateSensorHumi.documentLabel.append(string + "\n");
+            final String string = "{" + "Zona: \"" + SimulateSensorLumi.zona + "\", " + "Sensor: \"" + SimulateSensorLumi.sensor + "\", " + "Data: \"" + simpleDateFormat.format(new Date(System.currentTimeMillis())) + "\", " + "Medicao: \"" + double5 + "\" " + "}";
+            SimulateSensorLumi.documentLabel.append(string + "\n");
             this.writeSensor(string);
-            if (!SimulateSensorHumi.delay.equals("0")) {
+            if (!SimulateSensorLumi.delay.equals("0")) {
                 try {
-                    Thread.sleep(Integer.parseInt(SimulateSensorHumi.delay));
+                    Thread.sleep(Integer.parseInt(SimulateSensorLumi.delay));
                 }
                 catch (Exception ex) {}
             }
@@ -137,11 +137,11 @@ public class SimulateSensorHumi implements MqttCallback
             if (n3 > 2) {
                 ++n;
             }
-            if (n3 == 4 && n > Integer.parseInt(SimulateSensorHumi.medicoesIguais)) {
+            if (n3 == 4 && n > Integer.parseInt(SimulateSensorLumi.medicoesIguais)) {
                 n3 = 0;
                 n = 0;
             }
-            if (n3 == 3 && n > Integer.parseInt(SimulateSensorHumi.medicoesIguais)) {
+            if (n3 == 3 && n > Integer.parseInt(SimulateSensorLumi.medicoesIguais)) {
                 n3 = 1;
                 n = 0;
             }
@@ -153,14 +153,14 @@ public class SimulateSensorHumi implements MqttCallback
             }
             if (++n2 > double2) {
                 n2 = 0;
-                final double d = double5 + Double.parseDouble(SimulateSensorHumi.valorSalto);
-                for (int i = 0; i < Integer.parseInt(SimulateSensorHumi.medicoesSalto); ++i) {
-                    final String string2 = "{" + "Zona: \"" + SimulateSensorHumi.zona + "\", " + "Sensor: \"" + SimulateSensorHumi.sensor + "\", " + "Data: \"" + simpleDateFormat.format(new Date(System.currentTimeMillis())) + "\", " + "Medicao: \"" + d + "\" " + "}";
-                    SimulateSensorHumi.documentLabel.append(string2 + "\n");
+                final double d = double5 + Double.parseDouble(SimulateSensorLumi.valorSalto);
+                for (int i = 0; i < Integer.parseInt(SimulateSensorLumi.medicoesSalto); ++i) {
+                    final String string2 = "{" + "Zona: \"" + SimulateSensorLumi.zona + "\", " + "Sensor: \"" + SimulateSensorLumi.sensor + "\", " + "Data: \"" + simpleDateFormat.format(new Date(System.currentTimeMillis())) + "\", " + "Medicao: \"" + d + "\" " + "}";
+                    SimulateSensorLumi.documentLabel.append(string2 + "\n");
                     this.writeSensor(string2);
-                    if (!SimulateSensorHumi.delay.equals("0")) {
+                    if (!SimulateSensorLumi.delay.equals("0")) {
                         try {
-                            Thread.sleep(Integer.parseInt(SimulateSensorHumi.delay));
+                            Thread.sleep(Integer.parseInt(SimulateSensorLumi.delay));
                         }
                         catch (Exception ex2) {}
                     }
@@ -173,7 +173,7 @@ public class SimulateSensorHumi implements MqttCallback
         try {
             final MqttMessage mqttMessage = new MqttMessage();
             mqttMessage.setPayload(s.getBytes());
-            SimulateSensorHumi.mqttclient.publish(SimulateSensorHumi.cloud_topic, mqttMessage);
+            SimulateSensorLumi.mqttclient.publish(SimulateSensorLumi.cloud_topic, mqttMessage);
         }
         catch (MqttException ex) {
             ex.printStackTrace();
@@ -200,20 +200,20 @@ public class SimulateSensorHumi implements MqttCallback
     }
     
     static {
-        SimulateSensorHumi.cloud_server = new String();
-        SimulateSensorHumi.cloud_topic = new String();
-        SimulateSensorHumi.delay = new String();
-        SimulateSensorHumi.zona = new String();
-        SimulateSensorHumi.sensor = new String();
-        SimulateSensorHumi.limiteInferior = new String();
-        SimulateSensorHumi.limiteSuperior = new String();
-        SimulateSensorHumi.valorInicial = new String();
-        SimulateSensorHumi.variacao = new String();
-        SimulateSensorHumi.medicoesIguais = new String();
-        SimulateSensorHumi.medicoesEntreSalto = new String();
-        SimulateSensorHumi.valorSalto = new String();
-        SimulateSensorHumi.medicoesSalto = new String();
-        SimulateSensorHumi.display_documents = new String();
-        SimulateSensorHumi.documentLabel = new JTextArea("\n");
+        SimulateSensorLumi.cloud_server = new String();
+        SimulateSensorLumi.cloud_topic = new String();
+        SimulateSensorLumi.delay = new String();
+        SimulateSensorLumi.zona = new String();
+        SimulateSensorLumi.sensor = new String();
+        SimulateSensorLumi.limiteInferior = new String();
+        SimulateSensorLumi.limiteSuperior = new String();
+        SimulateSensorLumi.valorInicial = new String();
+        SimulateSensorLumi.variacao = new String();
+        SimulateSensorLumi.medicoesIguais = new String();
+        SimulateSensorLumi.medicoesEntreSalto = new String();
+        SimulateSensorLumi.valorSalto = new String();
+        SimulateSensorLumi.medicoesSalto = new String();
+        SimulateSensorLumi.display_documents = new String();
+        SimulateSensorLumi.documentLabel = new JTextArea("\n");
     }
 }
