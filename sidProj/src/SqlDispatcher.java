@@ -211,20 +211,15 @@ public class SqlDispatcher implements Runnable {
 					int rs = stmt.executeUpdate(s);
 					System.out.println(s);
 
-					insertCulturaMedicao(stmt, id, zona); // insert into cultura_medicao for that zona
+//					insertCulturaMedicao(stmt, id, zona); // insert into cultura_medicao for that zona
 
 				}
-				if (!centralWork.getAlertaQueue().isEmpty() && centralWork.getQueueMedicao().size()<10) {
+				if (!centralWork.getAlertaQueue().isEmpty()) {
 					
 					insertAlerta(); // insert into alerta
 
-				} else {
-//					Thread.sleep(1000);
-				}
+				} 
 			} catch (SQLException e) {
-
-				e.printStackTrace();
-
 			}
 			try { // sempre que insere, vem aqui e verifica se existe algum campo alterado a 1 na
 					// tabela e atualiza esses parametrosCultura
@@ -275,18 +270,12 @@ public class SqlDispatcher implements Runnable {
 				+ idMedicao + "', " + idCultura + ", null, '" + horaEscrita + "', '" + tipoAlerta + "', '" + mensagem
 				+ "', " + zona + ", '" + sensor + "', '" + hora + "', " + leitura + ", null, null, " + enviarAlerta
 				+ ")";
+		String medicao = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
+				+ "VALUES ('" + idMedicao + "', '" + hora + "', " + leitura + ", '" + sensor + "', " + zona
+				+ ")";
 		System.out.println("ALERTA:" + s);
 		
-//		ResultSet rs = stmt.executeQuery("select * from cultura_medicao where Cultura_IdCultura=" + idCultura
-//				+ "  and Medicao_IdMedicao='" + idMedicao+"'");
-//		if (rs.next() == false) {
-//			ResultSet rs2 = stmt.executeQuery("select * from cultura_medicao where Cultura_IdCultura=" + idCultura
-//					+ "  and Medicao_IdMedicao='" + idMedicao+"'");
-//			while (rs2.next() == false) {
-//				rs2 = stmt.executeQuery("select * from cultura_medicao where Cultura_IdCultura=" + idCultura
-//						+ "  and Medicao_IdMedicao='" + idMedicao+"'");
-//			}
-//		}
+		int rs = stmt.executeUpdate(medicao);
 		int rs3 = stmt.executeUpdate(s);
 	}
 }
