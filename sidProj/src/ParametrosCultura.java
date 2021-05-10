@@ -11,15 +11,15 @@ public class ParametrosCultura {
 	
 	private boolean alterado;
 
-	public ParametrosCultura(int id, double d, double e, double f, double g,
-			double h, double i) {
+	public ParametrosCultura(int id, double temp_min, double temp_max, double humidade_min, double humidade_max,
+			double luminosidade_min, double luminosidade_max) {
 		this.id = id;
-		this.temp_min = d;
-		this.temp_max = e;
-		this.humidade_min = f;
-		this.humidade_max = g;
-		this.luminosidade_min = h;
-		this.luminosidade_max = i;
+		this.temp_min = temp_min;
+		this.temp_max = temp_max;
+		this.humidade_min = humidade_min;
+		this.humidade_max = humidade_max;
+		this.luminosidade_min = luminosidade_min;
+		this.luminosidade_max = luminosidade_max;
 		alterado = false;
 	}
 	

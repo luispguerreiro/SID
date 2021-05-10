@@ -109,8 +109,9 @@ public class SqlDispatcher implements Runnable {
 			numCulturasIterator(zona);
 			String id = rs.getString("Cultura_IdCultura");
 			p.add(new ParametrosCultura(rs.getInt("Cultura_IdCultura"), rs.getDouble("Temp_Min"),
-					rs.getDouble("Temp_Max"), rs.getDouble("Luminosidade_Min"), rs.getDouble("Luminosidade_Max"),
-					rs.getDouble("Humidade_Min"), rs.getDouble("Humidade_Max")));
+					rs.getDouble("Temp_Max"), rs.getDouble("Humidade_Min"), rs.getDouble("Humidade_Max"),
+					rs.getDouble("Luminosidade_Min"), rs.getDouble("Luminosidade_Max")
+					));
 		}
 	}
 
@@ -145,9 +146,8 @@ public class SqlDispatcher implements Runnable {
 					System.out.println("**************ID********" + p.get(i).getId());
 					p.remove(i);
 					p.add(new ParametrosCultura(rs.getInt("Cultura_IdCultura"), rs.getDouble("Temp_Min"),
-							rs.getDouble("Temp_Max"), rs.getDouble("Luminosidade_Min"),
-							rs.getDouble("Luminosidade_Max"), rs.getDouble("Humidade_Min"),
-							rs.getDouble("Humidade_Max")));
+							rs.getDouble("Temp_Max"), rs.getDouble("Humidade_Min"), rs.getDouble("Humidade_Max"),
+							rs.getDouble("Luminosidade_Min"), rs.getDouble("Luminosidade_Max")));
 					String s = "UPDATE `sid`.`parametro_cultura` SET `Alterado` = '0' WHERE (`Cultura_IdCultura` = "
 							+ rs.getInt("Cultura_IdCultura") + ")";
 					int t = stmt2.executeUpdate(s);
@@ -191,7 +191,6 @@ public class SqlDispatcher implements Runnable {
 //		} catch (SQLException e) {
 //			e.printStackTrace();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

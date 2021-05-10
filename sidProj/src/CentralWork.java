@@ -47,7 +47,7 @@ public class CentralWork {
 		culturaMedicaoQueue= new LinkedBlockingQueue<>();
 					c = new Connections(this);
 					s = new SqlDispatcher(c.getConnection(), c.getConnectCloud(), this);
-//					Worker workertemp = new Worker(Constants.colt1, "T", 1, this);
+					Worker workertemp = new Worker(Constants.colt1, "T", 1, this);
 					Worker workerhumi = new Worker(Constants.colh1, "H", 1, this);
 					System.out.println("AAA");
 					s.run();
