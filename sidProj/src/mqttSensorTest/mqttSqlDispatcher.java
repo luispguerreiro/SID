@@ -1,4 +1,5 @@
 package mqttSensorTest;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,7 +19,7 @@ import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
 
 public class mqttSqlDispatcher implements Runnable, MqttCallback {
-	
+
 	private MqttClient mqttclient;
 
 	private Connection connect;
@@ -39,6 +40,8 @@ public class mqttSqlDispatcher implements Runnable, MqttCallback {
 			getAllSensorLastMedicao();
 			sqlGetCulturas(centralWork.getParametersZona1(), 1);
 			sqlGetCulturas(centralWork.getParametersZona2(), 2);
+			connectmqttCloud("G19_Medicao_T");
+			connectmqttCloud("G19_Alerta_T");
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -46,23 +49,20 @@ public class mqttSqlDispatcher implements Runnable, MqttCallback {
 //		thread.start();
 
 	}
-	
+
 	public mqttSqlDispatcher() {
 	}
-	
-	
-	  public void connecCloud() {
-	        try {
-	            (this.mqttclient = new MqttClient("tcp://broker.mqtt-dashboard.com:1883", "MongoToCloud1234" + "pina")).connect();
-	            this.mqttclient.setCallback((MqttCallback)this);
-	            this.mqttclient.subscribe("pina");
-	            this.mqttclient.subscribe("pinaa");
-	            
-	        }
-	        catch (MqttException ex) {
-	            ex.printStackTrace();
-	        }
-	    }
+
+	public void connectmqttCloud(String topic) {
+		try {
+			(this.mqttclient = new MqttClient("tcp://broker.mqtt-dashboard.com:1883",
+					"CloudToSQL" + String.valueOf(new Random().nextInt(100000)) + topic)).connect();
+			this.mqttclient.setCallback((MqttCallback) this);
+			this.mqttclient.subscribe(topic);
+		} catch (MqttException ex) {
+			ex.printStackTrace();
+		}
+	}
 
 	public double cloudGetSensorMinimumLimits(int zona, String tipoSensor) throws SQLException {
 		Statement stmt = connectCloud.createStatement();
@@ -160,24 +160,28 @@ public class mqttSqlDispatcher implements Runnable, MqttCallback {
 				System.out.println("numero culturas igual ao anterior");
 		}
 	}
-	
+
 	public void checkCampoAlterado(ArrayList<mqttParametrosCultura> p, int zona) throws SQLException {
 		Statement stmt = connect.createStatement();
 		Statement stmt2 = connect.createStatement();
-		ResultSet rs = stmt.executeQuery("select pc.* from parametro_cultura pc, cultura where Alterado=1 and Cultura_IdCultura=cultura.IdCultura"
-				+ " and cultura.Zona=" +zona);
-		while(rs.next()) {
-			for (int i = 0; i<p.size(); i++) {
-				System.out.println("**************ID********"+ p.get(i).getId());
-				if(p.get(i).getId()==rs.getInt("Cultura_IdCultura")){
-					System.out.println("**************ID********"+ p.get(i).getId());
+		ResultSet rs = stmt.executeQuery(
+				"select pc.* from parametro_cultura pc, cultura where Alterado=1 and Cultura_IdCultura=cultura.IdCultura"
+						+ " and cultura.Zona=" + zona);
+		while (rs.next()) {
+			for (int i = 0; i < p.size(); i++) {
+				System.out.println("**************ID********" + p.get(i).getId());
+				if (p.get(i).getId() == rs.getInt("Cultura_IdCultura")) {
+					System.out.println("**************ID********" + p.get(i).getId());
 					p.remove(i);
 					p.add(new mqttParametrosCultura(rs.getInt("Cultura_IdCultura"), rs.getDouble("Temp_Min"),
-							rs.getDouble("Temp_Max"), rs.getDouble("Luminosidade_Min"), rs.getDouble("Luminosidade_Max"),
-							rs.getDouble("Humidade_Min"), rs.getDouble("Humidade_Max")));
-					String s = "UPDATE `sid`.`parametro_cultura` SET `Alterado` = '0' WHERE (`Cultura_IdCultura` = " +rs.getInt("Cultura_IdCultura") + ")";
+							rs.getDouble("Temp_Max"), rs.getDouble("Luminosidade_Min"),
+							rs.getDouble("Luminosidade_Max"), rs.getDouble("Humidade_Min"),
+							rs.getDouble("Humidade_Max")));
+					String s = "UPDATE `sid`.`parametro_cultura` SET `Alterado` = '0' WHERE (`Cultura_IdCultura` = "
+							+ rs.getInt("Cultura_IdCultura") + ")";
 					int t = stmt2.executeUpdate(s);
-					System.out.println("----------------ALTERADO----------------\n ID:" + rs.getInt("Cultura_IdCultura"));
+					System.out
+							.println("----------------ALTERADO----------------\n ID:" + rs.getInt("Cultura_IdCultura"));
 				}
 			}
 		}
@@ -208,7 +212,7 @@ public class mqttSqlDispatcher implements Runnable, MqttCallback {
 
 	@Override
 	public void run() {
-		
+
 		try {
 //			getSQLNumberCulturas(1);
 //			getSQLNumberCulturas(2);
@@ -221,111 +225,39 @@ public class mqttSqlDispatcher implements Runnable, MqttCallback {
 		}
 
 		while (true) {
-			
-			Statement stmt;
-			Statement stmt2;
 			try {
-				if (!centralWork.getQueueMedicao().isEmpty()) {
-					stmt = connect.createStatement();
-					mqttMedicao medicao = centralWork.getQueueMedicao().poll();
-					String id = medicao.getId();
-					String timeStamp = medicao.getTimestamp();
-					Double medi = medicao.getLeitura();
-					String sensor = medicao.getSensorLetter();
-					int zona = medicao.getZonaInt();
-					String s = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
-							+ "VALUES ('" + id + "', '" + timeStamp + "', " + medi + ", '" + sensor + "', " + zona
-							+ ")";
-					int rs = stmt.executeUpdate(s);
-					
-					String culturaMedicao;
-					if(zona ==1) {
-						for (mqttParametrosCultura parameter : centralWork.getParameters(zona)) {
-							culturaMedicao = "INSERT INTO `sid`.`cultura_medicao` (`Medicao_IdMedicao`, `Cultura_IdCultura`) VALUES ('"
-									+ id + "', " + parameter.getId() + ")";
-							
-							int cMedicao= stmt.executeUpdate(culturaMedicao);
-						}
-					}
-				System.out.println(s);
-					
-				}
-//				try {
-//					Thread.sleep(100);
-//				} catch (InterruptedException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-//				if (!centralWork.getCulturaMedicaoQueue().isEmpty()) {
-//					stmt2 = connect.createStatement();
-//					CulturaMedicao cm = centralWork.getCulturaMedicaoQueue().poll();
-//					String statement = "INSERT INTO `sid`.`cultura_medicao` (`Medicao_IdMedicao`, `Cultura_IdCultura`) VALUES ('"
-//							+ cm.getIdMedicao() + "', " + cm.getIdCultura() + ")";
-//					System.out.println("CULTURA MEDICAO:" + statement);
-//					int rs2 = stmt2.executeUpdate(statement);
-//
-//				}
-				if (!centralWork.getAlertaQueue().isEmpty()) {
-					stmt = connect.createStatement();
-					mqttAlerta alerta = centralWork.getAlertaQueue().poll();
-					String idMedicao = alerta.getMedicaoId();
-					int idCultura = alerta.getCulturaId();
-					String horaEscrita = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-					String tipoAlerta = alerta.getTipoAlerta();
-					String mensagem = alerta.getMensagem();
-					int zona = alerta.getZona();
-					String sensor = alerta.getSensor();
-					String hora = alerta.getDate();
-					int enviarAlerta = alerta.getEnviarAlerta();
-					double leitura = alerta.getMedicao();
-					String s = "INSERT INTO `sid`.`alerta` (`Medicao_IdMedicao`, `Cultura_IdCultura`, `IdAlerta`, `Hora_Escrita`, `TipoAlerta`, "
-							+ "`Mensagem`, `Zona`, `Sensor`,`Hora`, `Leitura`, `Cultura`, `Email`, `enviarAlerta`) VALUES ('"
-							+ idMedicao + "', " + idCultura + ", null, '" + horaEscrita + "', '" + tipoAlerta + "', '"
-							+ mensagem + "', " + zona + ", '" + sensor + "', '" + hora + "', " + leitura
-							+ ", null, null, " + enviarAlerta + ")";
-					System.out.println("ALERTA:" + s);
-					int rs = stmt.executeUpdate(s);
-
-				} else {
-//					Thread.sleep(1000);
-				}
-			} catch (SQLException e) {
-				
-				e.printStackTrace();
-
-			}
-			try {
-				checkCampoAlterado(centralWork.getParameters(1),1);
-				checkCampoAlterado(centralWork.getParameters(2),2);
+				checkCampoAlterado(centralWork.getParameters(1), 1);
+				checkCampoAlterado(centralWork.getParameters(2), 2);
 			} catch (SQLException e1) {
 				e1.printStackTrace();
 			}
 		}
-
 	}
 
 	@Override
 	public void connectionLost(Throwable cause) {
-		// TODO Auto-generated method stub
-		
+
 	}
+
 	@Override
-	 public void messageArrived(final String s, final MqttMessage mqttMessage) throws Exception {
-	        try {
-	        	System.out.println(mqttMessage.toString());
-	        }
-	        catch (Exception x) {
-	            System.out.println(x);
-	        }
-	    }
+	public void messageArrived(final String s, final MqttMessage mqttMessage) throws Exception {
+		Statement stmt;
+		try {
+			stmt = connect.createStatement();
+			int rs = stmt.executeUpdate(mqttMessage.toString());
+			System.out.println(mqttMessage.toString());
+		} catch (Exception x) {
+			System.out.println(x);
+		}
+	}
 
 	@Override
 	public void deliveryComplete(IMqttDeliveryToken token) {
-		// TODO Auto-generated method stub
-		
+
 	}
+
 	public static void main(String[] args) {
 		mqttSqlDispatcher s = new mqttSqlDispatcher();
-		s.connecCloud();
+//		s.connecCloud();
 	}
 }
