@@ -214,7 +214,8 @@ public class SqlDispatcher implements Runnable {
 					insertCulturaMedicao(stmt, id, zona); // insert into cultura_medicao for that zona
 
 				}
-				if (!centralWork.getAlertaQueue().isEmpty() && centralWork.getQueueMedicao().size() < 2) {
+				if (!centralWork.getAlertaQueue().isEmpty() && centralWork.getQueueMedicao().size()<10) {
+					
 					insertAlerta(); // insert into alerta
 
 				} else {
@@ -275,6 +276,17 @@ public class SqlDispatcher implements Runnable {
 				+ "', " + zona + ", '" + sensor + "', '" + hora + "', " + leitura + ", null, null, " + enviarAlerta
 				+ ")";
 		System.out.println("ALERTA:" + s);
-		int rs = stmt.executeUpdate(s);
+		
+//		ResultSet rs = stmt.executeQuery("select * from cultura_medicao where Cultura_IdCultura=" + idCultura
+//				+ "  and Medicao_IdMedicao='" + idMedicao+"'");
+//		if (rs.next() == false) {
+//			ResultSet rs2 = stmt.executeQuery("select * from cultura_medicao where Cultura_IdCultura=" + idCultura
+//					+ "  and Medicao_IdMedicao='" + idMedicao+"'");
+//			while (rs2.next() == false) {
+//				rs2 = stmt.executeQuery("select * from cultura_medicao where Cultura_IdCultura=" + idCultura
+//						+ "  and Medicao_IdMedicao='" + idMedicao+"'");
+//			}
+//		}
+		int rs3 = stmt.executeUpdate(s);
 	}
 }

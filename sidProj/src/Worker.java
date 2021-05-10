@@ -29,11 +29,6 @@ public class Worker implements Runnable {
 
 	private List<Medicao> anomalies = new ArrayList<>();
 
-	private final double percentagem = 0.9;
-	private final int diferencaLeituras = 2;
-	private final int numeroMedicoesToleraveis = 4;
-	private final int minutesToHaveAlerta = 4;
-
 	private CentralWork centralWork;
 
 	public Worker(MongoCollection<Document> colLocal, String sensor, int zona, CentralWork centralWork) {
@@ -149,15 +144,6 @@ public class Worker implements Runnable {
 
 					centralWork.getQueueMedicao().offer(m);
 
-//					try {
-//						Thread.sleep(0);
-//						for (ParametrosCultura p : centralWork.getParameters(zona)) {
-//							centralWork.getCulturaMedicaoQueue().offer(new CulturaMedicao(m.getId(), p.getId()));
-//						}
-//					} catch (InterruptedException e) {
-//						// TODO Auto-generated catch block
-//						e.printStackTrace();
-//					}
 					String nowMinus5MiString2 = LocalDateTime.now().minusSeconds(16)
 							.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 					LocalDateTime nowMinus5Min2 = LocalDateTime.parse(nowMinus5MiString2,

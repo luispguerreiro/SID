@@ -47,7 +47,7 @@ public class mqttCentralWork {
 		culturaMedicaoQueue = new LinkedBlockingQueue<>();
 		c = new mqttConnections(this);
 		s = new mqttSqlDispatcher(c.getConnection(), c.getConnectCloud(), this);
-		mqttWorker worker = new mqttWorker(mqttConstants.colt1, "T", 1, this);
+		mqttWorker worker = new mqttWorker(mqttConstants.colt1, "T", 1, this, c.getConnection());
 		System.out.println(parametersZona1.size());
 		s.run();
 

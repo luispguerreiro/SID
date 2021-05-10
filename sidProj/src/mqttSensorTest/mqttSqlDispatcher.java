@@ -220,7 +220,6 @@ public class mqttSqlDispatcher implements Runnable, MqttCallback {
 //		} catch (SQLException e) {
 //			e.printStackTrace();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

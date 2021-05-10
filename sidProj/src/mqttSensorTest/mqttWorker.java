@@ -1,5 +1,9 @@
 package mqttSensorTest;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -42,6 +46,7 @@ public class mqttWorker implements Runnable, MqttCallback {
 
 	private String myMqttAlertTopic;
 	private String myMqttMedicaoTopic;
+	private Connection connection;
 
 	private mqttCentralWork centralWork;
 
@@ -49,8 +54,10 @@ public class mqttWorker implements Runnable, MqttCallback {
 
 	}
 
-	public mqttWorker(MongoCollection<Document> colLocal, String sensor, int zona, mqttCentralWork centralWork) {
+	public mqttWorker(MongoCollection<Document> colLocal, String sensor, int zona, mqttCentralWork centralWork,
+			Connection connection) {
 		this.colLocal = colLocal;
+		this.connection = connection;
 		this.centralWork = centralWork;
 		this.sensor = sensor;
 		this.zona = zona;
@@ -115,17 +122,33 @@ public class mqttWorker implements Runnable, MqttCallback {
 		try {
 			final MqttMessage mqttMessage = new MqttMessage();
 			mqttMessage.setPayload(s.getBytes());
-			if (topic.contains("Medicao")) {
-				mqttMessage.setQos(0);
-				mqttMedicaoclient.publish(topic, mqttMessage);
-			}
-			if (topic.contains("Alerta")) {
-				
-				mqttMessage.setQos(2);
-				mqttAlertclient.publish(topic, mqttMessage);
-			}
+			mqttMessage.setQos(0);
+			mqttMedicaoclient.publish(topic, mqttMessage);
 		} catch (MqttException ex) {
 			ex.printStackTrace();
+		}
+	}
+
+	
+	public void writeSensorAlerta(final String s, String topic, String idMedicao, int idCultura) {
+		try {
+			final MqttMessage mqttMessage = new MqttMessage();
+			mqttMessage.setPayload(s.getBytes());
+			Statement stmt = connection.createStatement();
+			ResultSet rs = stmt.executeQuery("select * from cultura_medicao where Cultura_IdCultura=" + idCultura
+					+ "  and Medicao_IdMedicao='" + idMedicao+"'");
+			if (rs.next() == false) {
+				ResultSet rs2 = stmt.executeQuery("select * from cultura_medicao where Cultura_IdCultura=" + idCultura
+						+ "  and Medicao_IdMedicao='" + idMedicao+"'");
+				while (rs2.next() == false) {
+					rs2 = stmt.executeQuery("select * from cultura_medicao where Cultura_IdCultura=" + idCultura
+							+ "  and Medicao_IdMedicao='" + idMedicao+"'");
+				}
+			}
+			mqttMessage.setQos(2);
+			mqttAlertclient.publish(topic, mqttMessage);
+		} catch (MqttException | SQLException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -185,6 +208,7 @@ public class mqttWorker implements Runnable, MqttCallback {
 
 	@Override
 	public void run() {
+		
 
 		double lastLeitura = 0;
 		int booleano = 0;
@@ -265,7 +289,7 @@ public class mqttWorker implements Runnable, MqttCallback {
 														+ a.getMensagem() + "', " + zona + ", '" + sensor + "', '"
 														+ a.getDate() + "', " + a.getMedicao() + ", null, null, "
 														+ a.getEnviarAlerta() + ")";
-												writeSensor(t, myMqttAlertTopic);
+												writeSensorAlerta(t, myMqttAlertTopic, a.getMedicaoId(), a.getCulturaId());
 												System.out.println(":::::" + t);
 //												centralWork.getAlertaQueue().offer(a);
 												aux = 1;
@@ -286,7 +310,7 @@ public class mqttWorker implements Runnable, MqttCallback {
 															+ a.getMensagem() + "', " + zona + ", '" + sensor + "', '"
 															+ a.getDate() + "', " + a.getMedicao() + ", null, null, "
 															+ a.getEnviarAlerta() + ")";
-													writeSensor(t, myMqttAlertTopic);
+													writeSensorAlerta(t, myMqttAlertTopic, a.getMedicaoId(), a.getCulturaId());
 													System.out.println(":::::" + t);
 
 //													centralWork.getAlertaQueue().offer(a);
@@ -352,7 +376,7 @@ public class mqttWorker implements Runnable, MqttCallback {
 								+ a.getMedicaoId() + "', " + a.getCulturaId() + ", null, '" + horaEscrita + "', '"
 								+ a.getTipoAlerta() + "', '" + a.getMensagem() + "', " + zona + ", '" + sensor + "', '"
 								+ a.getDate() + "', " + a.getMedicao() + ", null, null, " + a.getEnviarAlerta() + ")";
-						writeSensor(t, myMqttAlertTopic);
+						writeSensorAlerta(t, myMqttAlertTopic, a.getMedicaoId(), a.getCulturaId());
 						System.out.println(":::::" + t);
 
 //						centralWork.getAlertaQueue().offer(a);
@@ -364,7 +388,7 @@ public class mqttWorker implements Runnable, MqttCallback {
 								+ a.getMedicaoId() + "', " + a.getCulturaId() + ", null, '" + horaEscrita + "', '"
 								+ a.getTipoAlerta() + "', '" + a.getMensagem() + "', " + zona + ", '" + sensor + "', '"
 								+ a.getDate() + "', " + a.getMedicao() + ", null, null, " + a.getEnviarAlerta() + ")";
-						writeSensor(t, myMqttAlertTopic);
+						writeSensorAlerta(t, myMqttAlertTopic, a.getMedicaoId(), a.getCulturaId());
 //						centralWork.getAlertaQueue().offer(a);
 					}
 				} else {
@@ -383,7 +407,7 @@ public class mqttWorker implements Runnable, MqttCallback {
 									+ a.getTipoAlerta() + "', '" + a.getMensagem() + "', " + zona + ", '" + sensor
 									+ "', '" + a.getDate() + "', " + a.getMedicao() + ", null, null, "
 									+ a.getEnviarAlerta() + ")";
-							writeSensor(t, myMqttAlertTopic);
+							writeSensorAlerta(t, myMqttAlertTopic, a.getMedicaoId(), a.getCulturaId());
 							System.out.println(":::::" + t);
 
 //							centralWork.getAlertaQueue().offer(a);
@@ -397,7 +421,7 @@ public class mqttWorker implements Runnable, MqttCallback {
 									+ a.getTipoAlerta() + "', '" + a.getMensagem() + "', " + zona + ", '" + sensor
 									+ "', '" + a.getDate() + "', " + a.getMedicao() + ", null, null, "
 									+ a.getEnviarAlerta() + ")";
-							writeSensor(t, myMqttAlertTopic);
+							writeSensorAlerta(t, myMqttAlertTopic, a.getMedicaoId(), a.getCulturaId());
 							System.out.println(":::::" + t);
 
 						}
