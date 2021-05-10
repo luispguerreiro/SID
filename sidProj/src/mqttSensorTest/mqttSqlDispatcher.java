@@ -42,6 +42,10 @@ public class mqttSqlDispatcher implements Runnable, MqttCallback {
 			sqlGetCulturas(centralWork.getParametersZona2(), 2);
 			connectmqttCloud("G19_Medicao_T");
 			connectmqttCloud("G19_Alerta_T");
+			connectmqttCloud("G19_Medicao_L");
+			connectmqttCloud("G19_Alerta_L");
+			connectmqttCloud("G19_Medicao_H");
+			connectmqttCloud("G19_Alerta_H");
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -242,11 +246,10 @@ public class mqttSqlDispatcher implements Runnable, MqttCallback {
 	public void messageArrived(final String s, final MqttMessage mqttMessage) throws Exception {
 		Statement stmt;
 		try {
-			stmt = connect.createStatement();
-			int rs = stmt.executeUpdate(mqttMessage.toString());
-			System.out.println(mqttMessage.toString());
+				stmt = connect.createStatement();
+				int rs = stmt.executeUpdate(mqttMessage.toString());
+				System.out.println(mqttMessage.toString());
 		} catch (Exception x) {
-			System.out.println(x);
 		}
 	}
 

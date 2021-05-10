@@ -48,11 +48,11 @@ public class CentralWork {
 					c = new Connections(this);
 					s = new SqlDispatcher(c.getConnection(), c.getConnectCloud(), this);
 					Worker workertemp = new Worker(Constants.colt1, "T", 1, this);
-//					Worker workerhumi = new Worker(Constants.colh1, "H", 1, this);
-//					Worker workerlumi = new Worker(Constants.coll1, "L", 1, this);
-//					Worker workertemp2 = new Worker(Constants.colt2, "T", 2, this);
-//					Worker workerhumi2 = new Worker(Constants.colh2, "H", 2, this);
-//					Worker workerlumi2 = new Worker(Constants.coll2, "L", 2, this);
+					Worker workerhumi = new Worker(Constants.colh1, "H", 1, this);
+					Worker workerlumi = new Worker(Constants.coll1, "L", 1, this);
+					Worker workertemp2 = new Worker(Constants.colt2, "T", 2, this);
+					Worker workerhumi2 = new Worker(Constants.colh2, "H", 2, this);
+					Worker workerlumi2 = new Worker(Constants.coll2, "L", 2, this);
 					s.run();
 		
 	}
@@ -157,7 +157,7 @@ public Constants getConstants() {
 		this.parametersZona2 = parametersZona2;
 	}
 	
-	public ArrayList<ParametrosCultura> getParameters(int zona) {
+	public synchronized ArrayList<ParametrosCultura> getParameters(int zona) {
 		if (zona == 1)
 			return parametersZona1;
 		if (zona == 2)
