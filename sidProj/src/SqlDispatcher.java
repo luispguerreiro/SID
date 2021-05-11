@@ -215,10 +215,10 @@ public class SqlDispatcher implements Runnable {
 
 				}
 				if (!centralWork.getAlertaQueue().isEmpty()) {
-					
+
 					insertAlerta(); // insert into alerta
 
-				} 
+				}
 			} catch (SQLException e) {
 			}
 			try { // sempre que insere, vem aqui e verifica se existe algum campo alterado a 1 na
@@ -270,12 +270,21 @@ public class SqlDispatcher implements Runnable {
 				+ idMedicao + "', " + idCultura + ", null, '" + horaEscrita + "', '" + tipoAlerta + "', '" + mensagem
 				+ "', " + zona + ", '" + sensor + "', '" + hora + "', " + leitura + ", null, null, " + enviarAlerta
 				+ ")";
-		String medicao = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
-				+ "VALUES ('" + idMedicao + "', '" + hora + "', " + leitura + ", '" + sensor + "', " + zona
-				+ ")";
+		String medicao = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) " + "VALUES ('"
+				+ idMedicao + "', '" + hora + "', " + leitura + ", '" + sensor + "', " + zona + ")";
 		System.out.println("ALERTA:" + s);
-		
-		int rs = stmt.executeUpdate(medicao);
-		int rs3 = stmt.executeUpdate(s);
+
+		try {
+			int rs = stmt.executeUpdate(medicao);
+			int rs3 = stmt.executeUpdate(s);
+		} catch (SQLException e) {
+			try {
+				int rs3 = stmt.executeUpdate(s);
+			} catch (SQLException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+
 	}
 }
