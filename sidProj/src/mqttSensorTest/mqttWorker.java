@@ -1,5 +1,9 @@
 package mqttSensorTest;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -42,6 +46,7 @@ public class mqttWorker implements Runnable, MqttCallback {
 
 	private String myMqttAlertTopic;
 	private String myMqttMedicaoTopic;
+	private Connection connection;
 
 	private mqttCentralWork centralWork;
 
@@ -49,8 +54,10 @@ public class mqttWorker implements Runnable, MqttCallback {
 
 	}
 
-	public mqttWorker(MongoCollection<Document> colLocal, String sensor, int zona, mqttCentralWork centralWork) {
+	public mqttWorker(MongoCollection<Document> colLocal, String sensor, int zona, mqttCentralWork centralWork,
+			Connection connection) {
 		this.colLocal = colLocal;
+		this.connection = connection;
 		this.centralWork = centralWork;
 		this.sensor = sensor;
 		this.zona = zona;
@@ -63,7 +70,7 @@ public class mqttWorker implements Runnable, MqttCallback {
 		connectMqtt();
 		System.out.println("sensor max" + sensorMax);
 		System.out.println("sensor min" + sensorMin);
-		System.out.println("sensor last hora" + lastMedicaoHora);
+		System.out.println("sensor last hora " + lastMedicaoHora);
 		System.out.println("Inicializado worker zona: " + zona + " do sensor: " + sensor);
 		System.out.println(myMqttAlertTopic);
 		thread = new Thread(this);
@@ -115,14 +122,13 @@ public class mqttWorker implements Runnable, MqttCallback {
 		try {
 			final MqttMessage mqttMessage = new MqttMessage();
 			mqttMessage.setPayload(s.getBytes());
+			if (topic.contains("Alerta")) {
+				mqttMessage.setQos(2);
+				mqttMedicaoclient.publish(topic, mqttMessage);
+			}
 			if (topic.contains("Medicao")) {
 				mqttMessage.setQos(0);
 				mqttMedicaoclient.publish(topic, mqttMessage);
-			}
-			if (topic.contains("Alerta")) {
-				
-				mqttMessage.setQos(2);
-				mqttAlertclient.publish(topic, mqttMessage);
 			}
 		} catch (MqttException ex) {
 			ex.printStackTrace();
@@ -191,7 +197,6 @@ public class mqttWorker implements Runnable, MqttCallback {
 		int tinyint = 0;
 		int aux = 0;
 		while (true) {
-
 			LocalDateTime.now().minusHours(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
 			if (!(lastMedicaoDia.equals(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))) {
@@ -265,8 +270,11 @@ public class mqttWorker implements Runnable, MqttCallback {
 														+ a.getMensagem() + "', " + zona + ", '" + sensor + "', '"
 														+ a.getDate() + "', " + a.getMedicao() + ", null, null, "
 														+ a.getEnviarAlerta() + ")";
-												writeSensor(t, myMqttAlertTopic);
-												System.out.println(":::::" + t);
+												String medicao = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
+														+ "VALUES ('" + a.getMedicaoId() + "', '" + a.getDate() + "', " + a.getMedicao() + ", '"
+														+ sensor + "', " + zona + ")";
+												
+												writeSensor(medicao, myMqttAlertTopic); writeSensor(t, myMqttAlertTopic);
 //												centralWork.getAlertaQueue().offer(a);
 												aux = 1;
 											} else {
@@ -286,8 +294,11 @@ public class mqttWorker implements Runnable, MqttCallback {
 															+ a.getMensagem() + "', " + zona + ", '" + sensor + "', '"
 															+ a.getDate() + "', " + a.getMedicao() + ", null, null, "
 															+ a.getEnviarAlerta() + ")";
-													writeSensor(t, myMqttAlertTopic);
-													System.out.println(":::::" + t);
+													String medicao = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
+															+ "VALUES ('" + a.getMedicaoId() + "', '" + a.getDate() + "', " + a.getMedicao() + ", '"
+															+ sensor + "', " + zona + ")";
+													
+													writeSensor(medicao, myMqttAlertTopic); writeSensor(t, myMqttAlertTopic);
 
 //													centralWork.getAlertaQueue().offer(a);
 													aux = 1;
@@ -352,8 +363,11 @@ public class mqttWorker implements Runnable, MqttCallback {
 								+ a.getMedicaoId() + "', " + a.getCulturaId() + ", null, '" + horaEscrita + "', '"
 								+ a.getTipoAlerta() + "', '" + a.getMensagem() + "', " + zona + ", '" + sensor + "', '"
 								+ a.getDate() + "', " + a.getMedicao() + ", null, null, " + a.getEnviarAlerta() + ")";
-						writeSensor(t, myMqttAlertTopic);
-						System.out.println(":::::" + t);
+						String medicao = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
+								+ "VALUES ('" + a.getMedicaoId() + "', '" + a.getDate() + "', " + a.getMedicao() + ", '"
+								+ sensor + "', " + zona + ")";
+						
+						writeSensor(medicao, myMqttAlertTopic); writeSensor(t, myMqttAlertTopic);
 
 //						centralWork.getAlertaQueue().offer(a);
 					} else {
@@ -364,7 +378,11 @@ public class mqttWorker implements Runnable, MqttCallback {
 								+ a.getMedicaoId() + "', " + a.getCulturaId() + ", null, '" + horaEscrita + "', '"
 								+ a.getTipoAlerta() + "', '" + a.getMensagem() + "', " + zona + ", '" + sensor + "', '"
 								+ a.getDate() + "', " + a.getMedicao() + ", null, null, " + a.getEnviarAlerta() + ")";
-						writeSensor(t, myMqttAlertTopic);
+						String medicao = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
+								+ "VALUES ('" + a.getMedicaoId() + "', '" + a.getDate() + "', " + a.getMedicao() + ", '"
+								+ sensor + "', " + zona + ")";
+						
+						writeSensor(medicao, myMqttAlertTopic); writeSensor(t, myMqttAlertTopic);
 //						centralWork.getAlertaQueue().offer(a);
 					}
 				} else {
@@ -383,8 +401,11 @@ public class mqttWorker implements Runnable, MqttCallback {
 									+ a.getTipoAlerta() + "', '" + a.getMensagem() + "', " + zona + ", '" + sensor
 									+ "', '" + a.getDate() + "', " + a.getMedicao() + ", null, null, "
 									+ a.getEnviarAlerta() + ")";
-							writeSensor(t, myMqttAlertTopic);
-							System.out.println(":::::" + t);
+							String medicao = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
+									+ "VALUES ('" + a.getMedicaoId() + "', '" + a.getDate() + "', " + a.getMedicao() + ", '"
+									+ sensor + "', " + zona + ")";
+							
+							writeSensor(medicao, myMqttAlertTopic); writeSensor(t, myMqttAlertTopic);
 
 //							centralWork.getAlertaQueue().offer(a);
 						} else {
@@ -397,9 +418,11 @@ public class mqttWorker implements Runnable, MqttCallback {
 									+ a.getTipoAlerta() + "', '" + a.getMensagem() + "', " + zona + ", '" + sensor
 									+ "', '" + a.getDate() + "', " + a.getMedicao() + ", null, null, "
 									+ a.getEnviarAlerta() + ")";
-							writeSensor(t, myMqttAlertTopic);
-							System.out.println(":::::" + t);
-
+							String medicao = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
+									+ "VALUES ('" + a.getMedicaoId() + "', '" + a.getDate() + "', " + a.getMedicao() + ", '"
+									+ sensor + "', " + zona + ")";
+							
+							writeSensor(medicao, myMqttAlertTopic); writeSensor(t, myMqttAlertTopic);
 						}
 					}
 				}

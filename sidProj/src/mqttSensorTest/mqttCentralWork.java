@@ -47,7 +47,12 @@ public class mqttCentralWork {
 		culturaMedicaoQueue = new LinkedBlockingQueue<>();
 		c = new mqttConnections(this);
 		s = new mqttSqlDispatcher(c.getConnection(), c.getConnectCloud(), this);
-		mqttWorker worker = new mqttWorker(mqttConstants.colt1, "T", 1, this);
+		mqttWorker worker = new mqttWorker(mqttConstants.colt1, "T", 1, this, c.getConnection());
+		mqttWorker worker2 = new mqttWorker(mqttConstants.colt2, "T", 2, this, c.getConnection());
+		mqttWorker worker3 = new mqttWorker(mqttConstants.colh1, "H", 1, this, c.getConnection());
+		mqttWorker worker4 = new mqttWorker(mqttConstants.colh2, "H", 2, this, c.getConnection());
+		mqttWorker worker5 = new mqttWorker(mqttConstants.coll1, "L", 1, this, c.getConnection());
+		mqttWorker worker6 = new mqttWorker(mqttConstants.coll2, "L", 2, this, c.getConnection());
 		System.out.println(parametersZona1.size());
 		s.run();
 
@@ -151,7 +156,7 @@ public class mqttCentralWork {
 		this.parametersZona2 = parametersZona2;
 	}
 
-	public ArrayList<mqttParametrosCultura> getParameters(int zona) {
+	public synchronized ArrayList<mqttParametrosCultura> getParameters(int zona) {
 		if (zona == 1)
 			return parametersZona1;
 		if (zona == 2)

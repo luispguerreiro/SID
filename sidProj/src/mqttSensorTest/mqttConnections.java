@@ -99,12 +99,12 @@ public class mqttConnections {
 
 	
 	public void colIterations() {
-//		ColIteration t2 = new ColIteration(Constants.colSidt2, Constants.colt2);
+		mqttColIteration t2 = new mqttColIteration(mqttConstants.colSidt2, mqttConstants.colt2);
 		mqttColIteration t1 = new mqttColIteration(mqttConstants.colSidt1, mqttConstants.colt1);
-//		ColIteration h1 = new ColIteration(Constants.colSidh1, Constants.colh1);
-//		ColIteration h2 = new ColIteration(Constants.colSidh2, Constants.colh2);
-//		ColIteration l1 = new ColIteration(Constants.colSidl1, Constants.coll1);
-//		ColIteration l2 = new ColIteration(Constants.colSidl2, Constants.coll2);
+		mqttColIteration h1 = new mqttColIteration(mqttConstants.colSidh1, mqttConstants.colh1);
+		mqttColIteration h2 = new mqttColIteration(mqttConstants.colSidh2, mqttConstants.colh2);
+		mqttColIteration l1 = new mqttColIteration(mqttConstants.colSidl1, mqttConstants.coll1);
+		mqttColIteration l2 = new mqttColIteration(mqttConstants.colSidl2, mqttConstants.coll2);
 	}
 
 	public void connectSql() {

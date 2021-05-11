@@ -98,12 +98,12 @@ public class Connections {
 
 	
 	public void colIterations() {
-//		ColIteration t2 = new ColIteration(Constants.colSidt2, Constants.colt2);
+		ColIteration t2 = new ColIteration(Constants.colSidt2, Constants.colt2);
 		ColIteration t1 = new ColIteration(Constants.colSidt1, Constants.colt1);
 		ColIteration h1 = new ColIteration(Constants.colSidh1, Constants.colh1);
-//		ColIteration h2 = new ColIteration(Constants.colSidh2, Constants.colh2);
+		ColIteration h2 = new ColIteration(Constants.colSidh2, Constants.colh2);
 		ColIteration l1 = new ColIteration(Constants.colSidl1, Constants.coll1);
-//		ColIteration l2 = new ColIteration(Constants.colSidl2, Constants.coll2);
+		ColIteration l2 = new ColIteration(Constants.colSidl2, Constants.coll2);
 	}
 
 	public void connectSql() {
