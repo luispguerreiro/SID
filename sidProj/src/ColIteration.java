@@ -64,7 +64,7 @@ public class ColIteration implements Runnable {
 				FindIterable<Document> docid = colDestin.find(Filters.eq("_id", doc5.get("_id")));
 				Document docdoc = docid.first();
 				System.out.println("aqui last nao era null mas vamos ver se ja existia la esse doc...");
-				System.out.println(docdoc.toString());
+//				System.out.println(docdoc.toString());
 
 				if (docdoc == null ) {
 					System.out.println("aqui docdoc diferente do cursor de 1h atras");

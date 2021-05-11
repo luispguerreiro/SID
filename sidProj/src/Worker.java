@@ -231,7 +231,7 @@ public class Worker implements Runnable {
 						}
 					}
 					}else
-						System.err.println("ERRO CARACTER");
+						System.err.println("ERRO CARACTER NA MEDICAO");
 				lastMedicaoDia = doc.getString("Data");
 				lastMedicaoHora = doc.getString("Hora");
 			}

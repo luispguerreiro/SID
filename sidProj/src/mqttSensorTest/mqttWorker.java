@@ -1,9 +1,6 @@
 package mqttSensorTest;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -46,7 +43,6 @@ public class mqttWorker implements Runnable, MqttCallback {
 
 	private String myMqttAlertTopic;
 	private String myMqttMedicaoTopic;
-	private Connection connection;
 
 	private mqttCentralWork centralWork;
 
@@ -54,10 +50,8 @@ public class mqttWorker implements Runnable, MqttCallback {
 
 	}
 
-	public mqttWorker(MongoCollection<Document> colLocal, String sensor, int zona, mqttCentralWork centralWork,
-			Connection connection) {
+	public mqttWorker(MongoCollection<Document> colLocal, String sensor, int zona, mqttCentralWork centralWork) {
 		this.colLocal = colLocal;
-		this.connection = connection;
 		this.centralWork = centralWork;
 		this.sensor = sensor;
 		this.zona = zona;
@@ -188,6 +182,15 @@ public class mqttWorker implements Runnable, MqttCallback {
 			return "Luminosidade";
 		throw new IllegalArgumentException();
 	}
+	
+	public boolean isDouble(String value) {
+	    try {
+	        Double.parseDouble(value);
+	        return true;
+	    } catch (NumberFormatException | NullPointerException e) {
+	        return false;
+	    }
+	}
 
 	@Override
 	public void run() {
@@ -215,6 +218,7 @@ public class mqttWorker implements Runnable, MqttCallback {
 				aux = 0;
 				doc = cursor.next();
 				mqttMedicao m;
+				if(isDouble(doc.getString("Medicao"))) {
 				m = new mqttMedicao(doc.get("_id"), doc.getString("Data"), doc.getString("Hora"),
 						Double.parseDouble(doc.getString("Medicao")), doc.getString("Sensor"), doc.getString("Zona"));
 				if (isBetween(sensorMin, sensorMax, m.getLeitura())) {
@@ -323,6 +327,8 @@ public class mqttWorker implements Runnable, MqttCallback {
 					}
 
 				}
+				}else
+					System.err.println("ERRO CARACTER NA MEDICAO");
 
 				lastMedicaoDia = doc.getString("Data");
 				lastMedicaoHora = doc.getString("Hora");
