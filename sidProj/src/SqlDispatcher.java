@@ -211,7 +211,7 @@ public class SqlDispatcher implements Runnable {
 					int rs = stmt.executeUpdate(s);
 					System.out.println(s);
 
-//					insertCulturaMedicao(stmt, id, zona); // insert into cultura_medicao for that zona
+					insertCulturaMedicao(stmt, id, zona); // insert into cultura_medicao for that zona
 
 				}
 				if (!centralWork.getAlertaQueue().isEmpty()) {
@@ -276,6 +276,7 @@ public class SqlDispatcher implements Runnable {
 
 		try {
 			int rs = stmt.executeUpdate(medicao);
+			insertCulturaMedicao(stmt, idMedicao, zona);
 			int rs3 = stmt.executeUpdate(s);
 		} catch (SQLException e) {
 			try {
