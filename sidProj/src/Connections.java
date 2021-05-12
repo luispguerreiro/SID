@@ -41,9 +41,8 @@ public class Connections {
 	public Connections(CentralWork cw) throws IOException {
 		this.cw=cw;
 		constants = new Constants();
-//		constants.assignConstants();
 		connectSql();
-		connectSqlCloud();
+//		connectSqlCloud(); //comentado enquanto stor tem o sql cloud desligado
 		connectToMongoSid();
 		connectToMongoGroup();
 //

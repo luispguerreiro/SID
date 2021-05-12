@@ -74,7 +74,7 @@ public class CloudToMongoTempZona2 implements MqttCallback
         createWindow();
         try {
             final Properties properties = new Properties();
-            properties.load(new FileInputStream("cloudToMongoTempZona2.ini"));
+            properties.load(new FileInputStream("cloudToMongo.ini"));
             CloudToMongoTempZona2.mongo_address = properties.getProperty("mongo_address");
             CloudToMongoTempZona2.mongo_user = properties.getProperty("mongo_user");
             CloudToMongoTempZona2.mongo_password = properties.getProperty("mongo_password");

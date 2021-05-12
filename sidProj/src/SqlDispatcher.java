@@ -23,7 +23,7 @@ public class SqlDispatcher implements Runnable {
 		this.connectCloud = connectCloud;
 		this.centralWork = centralWork;
 		try {
-			getAllSensorLimits();
+//			getAllSensorLimits();
 			getAllSensorLastMedicao();
 			sqlGetCulturas(centralWork.getParametersZona1(), 1);
 			sqlGetCulturas(centralWork.getParametersZona2(), 2);

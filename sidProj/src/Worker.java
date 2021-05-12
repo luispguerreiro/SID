@@ -1,6 +1,7 @@
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import org.bson.Document;
@@ -182,31 +183,13 @@ public class Worker implements Runnable {
 												"           ANOMALIAS        \n *********ANOMALIAS********\n ******************");
 									} else {
 										for (int i = 0; i < anomalies.size(); i++) {
-											if (i == anomalies.size() - 1)
-												tinyint = 1;
-											for (ParametrosCultura parametro : centralWork.getParameters(zona)) {
-												Alerta a;
-												if (checkMinMaxTypeSensor(parametro, anomalies.get(i).getLeitura())) {
-													a = new Alerta(anomalies.get(i).getId(), parametro.getId(),
-															chooseTipoAlerta(), " DE ULTRAPASSAGEM DE VALORES", zona,
-															sensor,
-															anomalies.get(i).getData() + " "
-																	+ anomalies.get(i).getHora(),
-															anomalies.get(i).getLeitura(), tinyint);
-													centralWork.getAlertaQueue().offer(a);
-													aux = 1;
-												} else {
-													if (checkAproximacaoSensor(parametro,
-															anomalies.get(i).getLeitura())) {
-														a = new Alerta(anomalies.get(i).getId(), parametro.getId(),
-																chooseTipoAlerta(), " DE APROXIMAÇÃO DE VALORES", zona,
-																sensor,
-																anomalies.get(i).getData() + " "
-																		+ anomalies.get(i).getHora(),
-																anomalies.get(i).getLeitura(), tinyint);
-														centralWork.getAlertaQueue().offer(a);
-														aux = 1;
-													}
+			/* ideia rui */ 				if (Constants.anomalies_to_notifications.equals("true")) {
+												if (i == anomalies.size() - 1)
+													tinyint = 1;
+												aux = falseAnomaliesToAlertaWithNotification(tinyint, aux, i);
+											}else {
+												if(Constants.anomalies_to_notifications.equals("false")) {
+													aux = falseAnomaliesToAlerta(tinyint, aux, i);
 												}
 											}
 										}
@@ -232,6 +215,90 @@ public class Worker implements Runnable {
 				lastMedicaoHora = doc.getString("Hora");
 			}
 		}
+	}
+
+	/**
+	 * @param tinyint
+	 * @param aux
+	 * @param i
+	 * @return
+	 */
+	public int falseAnomaliesToAlertaWithNotification(int tinyint, int aux, int i) {
+		for (ParametrosCultura parametro : centralWork.getParameters(zona)) {
+			Alerta a;
+			if (checkMinMaxTypeSensor(parametro,
+					anomalies.get(i).getLeitura())) {
+				a = new Alerta(anomalies.get(i).getId(), parametro.getId(),
+						chooseTipoAlerta(), " DE ULTRAPASSAGEM DE VALORES",
+						zona, sensor,
+						anomalies.get(i).getData() + " "
+								+ anomalies.get(i).getHora(),
+						anomalies.get(i).getLeitura(), tinyint);
+				centralWork.getAlertaQueue().offer(a);
+				aux = 1;
+			} else {
+				if (checkAproximacaoSensor(parametro,
+						anomalies.get(i).getLeitura())) {
+					a = new Alerta(anomalies.get(i).getId(), parametro.getId(),
+							chooseTipoAlerta(), " DE APROXIMAÇÃO DE VALORES",
+							zona, sensor,
+							anomalies.get(i).getData() + " "
+									+ anomalies.get(i).getHora(),
+							anomalies.get(i).getLeitura(), tinyint);
+					centralWork.getAlertaQueue().offer(a);
+					aux = 1;
+				}
+			}
+		}
+		return aux;
+	}
+
+	/**
+	 * @param tinyint
+	 * @param aux
+	 * @param i
+	 * @return
+	 */
+	public int falseAnomaliesToAlerta(int tinyint, int aux, int i) {
+		for (ParametrosCultura parametro : centralWork.getParameters(zona)) {
+			Alerta a;
+			if (checkMinMaxTypeSensor(parametro,
+					anomalies.get(i).getLeitura())) {
+				a = new Alerta(anomalies.get(i).getId(), parametro.getId(),
+						chooseTipoAlerta(), " DE ULTRAPASSAGEM DE VALORES",
+						zona, sensor,
+						anomalies.get(i).getData() + " "
+								+ anomalies.get(i).getHora(),
+						anomalies.get(i).getLeitura(), tinyint);
+//															centralWork.getAlertaQueue().offer(a);
+				if (minutesToHaveAlert(parametro, a, lastAlertaLimite, culturaIdListLimite)) {
+					a.setEnviarAlerta(1);
+					centralWork.getAlertaQueue().offer(a);
+				} else {
+					centralWork.getAlertaQueue().offer(a);
+				}
+				aux = 1;
+			} else {
+				if (checkAproximacaoSensor(parametro,
+						anomalies.get(i).getLeitura())) {
+					a = new Alerta(anomalies.get(i).getId(), parametro.getId(),
+							chooseTipoAlerta(), " DE APROXIMAÇÃO DE VALORES",
+							zona, sensor,
+							anomalies.get(i).getData() + " "
+									+ anomalies.get(i).getHora(),
+							anomalies.get(i).getLeitura(), tinyint);
+//																centralWork.getAlertaQueue().offer(a);
+					if (minutesToHaveAlert(parametro, a, lastAlertaAproximacao, culturaIdListAproximacao)) {
+						a.setEnviarAlerta(1);
+						centralWork.getAlertaQueue().offer(a);
+					} else {
+						centralWork.getAlertaQueue().offer(a);
+					}
+					aux = 1;
+				}
+			}
+		}
+		return aux;
 	}
 
 	/**
@@ -287,6 +354,7 @@ public class Worker implements Runnable {
 	public boolean minutesToHaveAlert(ParametrosCultura parametro, Alerta a, List<Alerta> lastAlerta,
 			List<Integer> culturaIdList) {
 		List<Alerta> aux = new ArrayList<>(lastAlerta);
+//		aux.sort();
 		if (lastAlerta.isEmpty() || !culturaIdList.contains(a.getCulturaId())) {
 			lastAlerta.add(a);
 			culturaIdList.add(a.getCulturaId());

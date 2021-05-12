@@ -6,18 +6,18 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class CentralWork {
 
 	private BlockingQueue<Medicao> medicaoQueue;
-	private BlockingQueue<Alerta> alertaQueue; 
-	private BlockingQueue<CulturaMedicao> culturaMedicaoQueue; 
-	
+	private BlockingQueue<Alerta> alertaQueue;
+	private BlockingQueue<CulturaMedicao> culturaMedicaoQueue;
+
 	private SqlDispatcher s;
-	
+
 	private String zona1sensorTLastMedicao;
 	private String zona1sensorHLastMedicao;
 	private String zona1sensorLLastMedicao;
 	private String zona2sensorLLastMedicao;
 	private String zona2sensorTLastMedicao;
 	private String zona2sensorHLastMedicao;
-	
+
 	private double zona1sensorTMax;
 	private double zona1sensorTMin;
 	private double zona1sensorHMax;
@@ -29,118 +29,132 @@ public class CentralWork {
 	private double zona2sensorHMax;
 	private double zona2sensorHMin;
 	private double zona2sensorLMax;
-	private double zona2sensorLMin; 
-	
+	private double zona2sensorLMin;
+
 	private int lastMedicaoId;
-	
+
 	private ArrayList<ParametrosCultura> parametersZona1 = new ArrayList<>();
 	private ArrayList<ParametrosCultura> parametersZona2 = new ArrayList<>();
-	
+
 	private Constants constants;
-	
+
 	Connections c;
-	
+
 	public CentralWork() throws IOException {
 		constants = new Constants();
 		medicaoQueue = new LinkedBlockingQueue<>();
 		alertaQueue = new LinkedBlockingQueue<>();
-		culturaMedicaoQueue= new LinkedBlockingQueue<>();
-					c = new Connections(this);
-					s = new SqlDispatcher(c.getConnection(), c.getConnectCloud(), this);
-					Worker workertemp = new Worker(Constants.colt1, "T", 1, this);
+		culturaMedicaoQueue = new LinkedBlockingQueue<>();
+		attributeSensorLimits();
+		c = new Connections(this);
+		s = new SqlDispatcher(c.getConnection(), c.getConnectCloud(), this);
+		Worker workertemp = new Worker(Constants.colt1, "T", 1, this);
 //					Worker workerhumi = new Worker(Constants.colh1, "H", 1, this);
 //					Worker workerlumi = new Worker(Constants.coll1, "L", 1, this);
-					Worker workertemp2 = new Worker(Constants.colt2, "T", 2, this);
+		Worker workertemp2 = new Worker(Constants.colt2, "T", 2, this);
 //					Worker workerhumi2 = new Worker(Constants.colh2, "H", 2, this);
 //					Worker workerlumi2 = new Worker(Constants.coll2, "L", 2, this);
-					s.run();
-		
+		s.run();
+
 	}
-	
-public Constants getConstants() {
-	return constants;
-}	
+
+	public void attributeSensorLimits() {
+		zona1sensorTMax = 100;
+		zona1sensorTMin = 0;
+		zona1sensorHMax = 100;
+		zona1sensorHMin = 0;
+		zona1sensorLMax = 100;
+		zona1sensorLMin = 0;
+		zona2sensorTMax = 100;
+		zona2sensorTMin = 0;
+		zona2sensorHMax = 100;
+		zona2sensorHMin = 0;
+		zona2sensorLMax = 100;
+		zona2sensorLMin = 0;
+	}
+
+	public Constants getConstants() {
+		return constants;
+	}
+
 	public synchronized BlockingQueue<Medicao> getQueueMedicao() {
 		return medicaoQueue;
 	}
-	
+
 	public synchronized BlockingQueue<Alerta> getAlertaQueue() {
 		return alertaQueue;
 	}
-	
+
 	public synchronized BlockingQueue<CulturaMedicao> getCulturaMedicaoQueue() {
 		return culturaMedicaoQueue;
 	}
-	
+
 	public double getSensorMin(String sensor, int zona) {
-		 if(sensor.equals("T")) {
-			 if(zona==1)
-				 return zona1sensorTMin;
-			 if(zona==2)
-				 return zona2sensorTMin;
-		 }
-		 if(sensor.equals("L")) {
-			 if(zona==1)
-				 return zona1sensorLMin;
-			 if(zona==2)
-				 return zona2sensorLMin;
-		 }
-		 if(sensor.equals("H")) {
-			 if(zona==1)
-				 return zona1sensorHMin;
-			 if(zona==2)
-				 return zona2sensorHMin;
-		 }
-		 throw new IllegalArgumentException("erro get sensor min");
+		if (sensor.equals("T")) {
+			if (zona == 1)
+				return zona1sensorTMin;
+			if (zona == 2)
+				return zona2sensorTMin;
+		}
+		if (sensor.equals("L")) {
+			if (zona == 1)
+				return zona1sensorLMin;
+			if (zona == 2)
+				return zona2sensorLMin;
+		}
+		if (sensor.equals("H")) {
+			if (zona == 1)
+				return zona1sensorHMin;
+			if (zona == 2)
+				return zona2sensorHMin;
+		}
+		throw new IllegalArgumentException("erro get sensor min");
 	}
-	
-	
-	
-	
+
 	public double getSensorMax(String sensor, int zona) {
-		 if(sensor.equals("T")) {
-			 if(zona==1)
-				 return zona1sensorTMax;
-			 if(zona==2)
-				 return zona2sensorTMax;
-		 }
-		 if(sensor.equals("L")) {
-			 if(zona==1)
-				 return zona1sensorLMax;
-			 if(zona==2)
-				 return zona2sensorLMax;
-		 }
-		 if(sensor.equals("H")) {
-			 if(zona==1)
-				 return zona1sensorHMax;
-			 if(zona==2)
-				 return zona2sensorHMax;
-		 }
-		 throw new IllegalArgumentException("erro get sensor max");
+		if (sensor.equals("T")) {
+			if (zona == 1)
+				return zona1sensorTMax;
+			if (zona == 2)
+				return zona2sensorTMax;
+		}
+		if (sensor.equals("L")) {
+			if (zona == 1)
+				return zona1sensorLMax;
+			if (zona == 2)
+				return zona2sensorLMax;
+		}
+		if (sensor.equals("H")) {
+			if (zona == 1)
+				return zona1sensorHMax;
+			if (zona == 2)
+				return zona2sensorHMax;
+		}
+		throw new IllegalArgumentException("erro get sensor max");
 	}
-	
+
 	public String getSensorLastMedicao(String sensor, int zona) {
-		 if(sensor.equals("T")) {
-			 if(zona==1)
-				 return zona1sensorTLastMedicao;
-			 if(zona==2)
-				 return zona2sensorTLastMedicao;
-		 }
-		 if(sensor.equals("L")) {
-			 if(zona==1)
-				 return zona1sensorLLastMedicao;	
-			 if(zona==2)
-				 return zona2sensorLLastMedicao;
-		 }
-		 if(sensor.equals("H")) {
-			 if(zona==1)
-				 return zona1sensorHLastMedicao;
-			 if(zona==2)
-				 return zona2sensorHLastMedicao;
-		 }
-		 throw new IllegalArgumentException("erro get sensor min");
+		if (sensor.equals("T")) {
+			if (zona == 1)
+				return zona1sensorTLastMedicao;
+			if (zona == 2)
+				return zona2sensorTLastMedicao;
+		}
+		if (sensor.equals("L")) {
+			if (zona == 1)
+				return zona1sensorLLastMedicao;
+			if (zona == 2)
+				return zona2sensorLLastMedicao;
+		}
+		if (sensor.equals("H")) {
+			if (zona == 1)
+				return zona1sensorHLastMedicao;
+			if (zona == 2)
+				return zona2sensorHLastMedicao;
+		}
+		throw new IllegalArgumentException("erro get sensor min");
 	}
-	
+
 	public ArrayList<ParametrosCultura> getParametersZona1() {
 		return parametersZona1;
 	}
@@ -156,7 +170,7 @@ public Constants getConstants() {
 	public void setParametersZona2(ArrayList<ParametrosCultura> parametersZona2) {
 		this.parametersZona2 = parametersZona2;
 	}
-	
+
 	public synchronized ArrayList<ParametrosCultura> getParameters(int zona) {
 		if (zona == 1)
 			return parametersZona1;
@@ -164,7 +178,7 @@ public Constants getConstants() {
 			return parametersZona2;
 		throw new IllegalStateException();
 	}
-	
+
 	public void setZona1sensorTLastMedicao(String zona1sensorTLastMedicao) {
 		this.zona1sensorTLastMedicao = zona1sensorTLastMedicao;
 	}
@@ -188,7 +202,6 @@ public Constants getConstants() {
 	public void setZona2sensorHLastMedicao(String zona2sensorHLastMedicao) {
 		this.zona2sensorHLastMedicao = zona2sensorHLastMedicao;
 	}
-	
 
 	public void setZona1sensorTMax(double zona1sensorTMax) {
 		this.zona1sensorTMax = zona1sensorTMax;
@@ -241,7 +254,7 @@ public Constants getConstants() {
 	public Connections getC() {
 		return c;
 	}
-	
+
 	public static void main(String[] args) throws IOException {
 		CentralWork cw = new CentralWork();
 //		SqlDispatcher s = new SqlDispatcher(cw.getC().getConnection(), cw.getC().getConnectCloud(), cw);
@@ -249,5 +262,5 @@ public Constants getConstants() {
 //		worker.run();
 //		s.run();
 	}
-	
+
 }
