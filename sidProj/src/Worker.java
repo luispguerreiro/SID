@@ -76,11 +76,8 @@ public class Worker implements Runnable {
 		if (sensor.equals("T")) {
 			double auxMax = (p.getTemp_max() - p.getTemp_min()) * Constants.percentagemAviso;
 			double auxMin = (p.getTemp_max() - p.getTemp_min()) * (1 - Constants.percentagemAviso);
-
 			return (auxMax + p.getTemp_min() < medicao || auxMin + p.getTemp_min() > medicao);
-
 		}
-
 		if (sensor.equals("H")) {
 			double auxMax = (p.getHumidade_max() - p.getHumidade_min()) * Constants.percentagemAviso;
 			double auxMin = (p.getHumidade_max() - p.getHumidade_min()) * (1 - Constants.percentagemAviso);
@@ -110,16 +107,15 @@ public class Worker implements Runnable {
 			return "Luminosidade";
 		throw new IllegalArgumentException();
 	}
-	
-	public boolean isDouble(String value) {
-	    try {
-	        Double.parseDouble(value);
-	        return true;
-	    } catch (NumberFormatException | NullPointerException e) {
-	        return false;
-	    }
-	}
 
+	public boolean isDouble(String value) {
+		try {
+			Double.parseDouble(value);
+			return true;
+		} catch (NumberFormatException | NullPointerException e) {
+			return false;
+		}
+	}
 
 	@Override
 	public void run() {
@@ -147,12 +143,12 @@ public class Worker implements Runnable {
 			while (cursor.hasNext()) {
 				aux = 0;
 				doc = cursor.next();
-					Medicao m;
-					if(isDouble(doc.getString("Medicao"))) {
+				Medicao m;
+				if (isDouble(doc.getString("Medicao"))) {
 					m = new Medicao(doc.get("_id"), doc.getString("Data"), doc.getString("Hora"),
 							Double.parseDouble(doc.getString("Medicao")), doc.getString("Sensor"),
 							doc.getString("Zona"));
-					
+
 					if (isBetween(sensorMin, sensorMax, m.getLeitura())) {
 
 						centralWork.getQueueMedicao().offer(m);
@@ -230,8 +226,8 @@ public class Worker implements Runnable {
 							sendAlertas(doc);
 						}
 					}
-					}else
-						System.err.println("ERRO CARACTER NA MEDICAO");
+				} else
+					System.err.println("ERRO CARACTER NA MEDICAO");
 				lastMedicaoDia = doc.getString("Data");
 				lastMedicaoHora = doc.getString("Hora");
 			}
