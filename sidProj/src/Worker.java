@@ -186,10 +186,12 @@ public class Worker implements Runnable {
 			/* ideia rui */ 				if (Constants.anomalies_to_notifications.equals("true")) {
 												if (i == anomalies.size() - 1)
 													tinyint = 1;
-												aux = falseAnomaliesToAlertaWithNotification(tinyint, aux, i);
+												aux = falseAnomaliesToAlertaWithNotification(tinyint, aux, i); 
+												//sempre que é falsa anomalia, envia o ultimo alerta com enviar_alerta=1
 											}else {
 												if(Constants.anomalies_to_notifications.equals("false")) {
 													aux = falseAnomaliesToAlerta(tinyint, aux, i);
+												//sempre que é falsa anomalia, só envia alerta se o ultimo alerta > 15seg
 												}
 											}
 										}
