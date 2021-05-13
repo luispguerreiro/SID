@@ -40,8 +40,8 @@ public class Worker implements Runnable {
 		sensorMax = centralWork.getSensorMax(sensor, zona);
 		sensorMin = centralWork.getSensorMin(sensor, zona);
 		lastMedicao = centralWork.getSensorLastMedicao(sensor, zona);
-		lastMedicaoDia = lastMedicao.split(" ")[0];
-		lastMedicaoHora = lastMedicao.split(" ")[1];
+		lastMedicaoDia = lastMedicao.split("T")[0];
+		lastMedicaoHora = lastMedicao.split("T")[1];
 		System.out.println("sensor max" + sensorMax);
 		System.out.println("sensor min" + sensorMin);
 		System.out.println("sensor last hora" + lastMedicaoHora);
@@ -131,7 +131,7 @@ public class Worker implements Runnable {
 
 			if (!(lastMedicaoDia.equals(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))) {
 				lastMedicaoDia = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-				lastMedicaoHora = LocalDateTime.now().minusHours(1).format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+				lastMedicaoHora = LocalDateTime.now().minusMinutes(5).format(DateTimeFormatter.ofPattern("HH:mm:ss"));
 				System.out.println("LAST MEDICAO ERA DE OUTRO DIA");
 			}
 
@@ -154,7 +154,7 @@ public class Worker implements Runnable {
 
 						centralWork.getQueueMedicao().offer(m);
 
-						String nowMinus5MiString2 = LocalDateTime.now().minusSeconds(16)
+						String nowMinus5MiString2 = LocalDateTime.now().minusMinutes(5)
 								.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 						LocalDateTime nowMinus5Min2 = LocalDateTime.parse(nowMinus5MiString2,
 								DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
@@ -307,7 +307,7 @@ public class Worker implements Runnable {
 	 * @param doc
 	 */
 	public void sendAlertas(Document doc) {
-		String nowMinus5MiString2 = LocalDateTime.now().minusSeconds(16)
+		String nowMinus5MiString2 = LocalDateTime.now().minusMinutes(5)
 				.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
 		LocalDateTime nowMinus5Min2 = LocalDateTime.parse(nowMinus5MiString2,
 				DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));

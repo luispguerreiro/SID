@@ -95,10 +95,21 @@ public class mqttSqlDispatcher implements Runnable, MqttCallback {
 		ResultSet rs = stmt.executeQuery("select Hora from medicao where medicao.sensor= '" + tipoSensor
 				+ "' and medicao.zona " + " = " + zona + " order by IdMedicao desc LIMIT 0, 1");
 		String date = "";
+		String nowMinus5MiString = LocalDateTime.now().minusMinutes(60)
+				.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+		LocalDateTime nowMinus5Min = LocalDateTime.parse(nowMinus5MiString,
+				DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
 		if (rs.next()) {
-			date = rs.getString("Hora");
+			LocalDateTime horaMedicao = LocalDateTime.parse(rs.getString("Hora"),
+					DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+			if (horaMedicao.isAfter(nowMinus5Min))
+				date = horaMedicao.toString();
+			else 
+				date = nowMinus5Min.toString();
 		} else {
-			date = LocalDateTime.now().minusHours(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+			date = nowMinus5Min.toString();
 
 		}
 		return date;
@@ -246,10 +257,13 @@ public class mqttSqlDispatcher implements Runnable, MqttCallback {
 	public void messageArrived(final String s, final MqttMessage mqttMessage) throws Exception {
 		Statement stmt;
 		try {
-				stmt = connect.createStatement();
-				int rs = stmt.executeUpdate(mqttMessage.toString());
-				System.out.println(mqttMessage.toString());
+			stmt = connect.createStatement();
+			int rs = stmt.executeUpdate(mqttMessage.toString());
+//				Thread.sleep(1000); 
+
+			System.out.println(mqttMessage.toString());
 		} catch (Exception x) {
+			x.printStackTrace();
 		}
 	}
 

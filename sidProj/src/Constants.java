@@ -64,7 +64,7 @@ public class Constants {
 	static int variacaoParaAnomalos;
 	static int numeroMedicoesToleraveis;
 	static double percentagemAviso;
-	
+	static int medicoes_backupTime;
 	static String anomalies_to_notifications;
 
 	private Connection connection;
@@ -141,6 +141,7 @@ public class Constants {
 		variacaoParaAnomalos = Integer.parseInt(mongoProperties.getProperty("variacaoParaAnomalos"));
 		numeroMedicoesToleraveis = Integer.parseInt(mongoProperties.getProperty("numeroMedicoesToleraveis"));
 		anomalies_to_notifications = mongoProperties.getProperty("anomalies_to_notifications");
+		medicoes_backupTime = Integer.parseInt(mongoProperties.getProperty("medicoes_backupTime"));
 	}
 
 	public static void main(String[] args) {

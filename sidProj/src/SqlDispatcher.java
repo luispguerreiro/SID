@@ -62,10 +62,21 @@ public class SqlDispatcher implements Runnable {
 		ResultSet rs = stmt.executeQuery("select Hora from medicao where medicao.sensor= '" + tipoSensor
 				+ "' and medicao.zona " + " = " + zona + " order by IdMedicao desc LIMIT 0, 1");
 		String date = "";
+		String nowMinus5MiString = LocalDateTime.now().minusMinutes(5)
+				.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+		LocalDateTime nowMinus5Min = LocalDateTime.parse(nowMinus5MiString,
+				DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
 		if (rs.next()) {
-			date = rs.getString("Hora");
+			LocalDateTime horaMedicao = LocalDateTime.parse(rs.getString("Hora"),
+					DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+			if (horaMedicao.isAfter(nowMinus5Min))
+				date = horaMedicao.toString();
+			else 
+				date = nowMinus5Min.toString();
 		} else {
-			date = LocalDateTime.now().minusHours(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+			date = nowMinus5Min.toString();
 
 		}
 		return date;
@@ -215,9 +226,7 @@ public class SqlDispatcher implements Runnable {
 
 				}
 				if (!centralWork.getAlertaQueue().isEmpty()) {
-
 					insertAlerta(); // insert into alerta
-
 				}
 			} catch (SQLException e) {
 			}
