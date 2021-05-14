@@ -108,8 +108,7 @@ public class Connections {
 	public void connectSql() {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");  
-//			connection = DriverManager.getConnection("jdbc:mysql://194.210.86.10:3306/g19", "aluno", "aluno");
-			connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/sid", "root", "");
+			connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/sid", "tecnico@gmail.com", "123");
 			estado_ligacao = true;
 			System.out.println("Ligacao Estabelecida ao sql : " + estado_ligacao);
 		} catch (SQLException | ClassNotFoundException e) {
