@@ -42,7 +42,7 @@ public class Connections {
 		this.cw=cw;
 		constants = new Constants();
 		connectSql();
-//		connectSqlCloud(); //comentado enquanto stor tem o sql cloud desligado
+		connectSqlCloud(); //comentado enquanto stor tem o sql cloud desligado
 		connectToMongoSid();
 		connectToMongoGroup();
 //
@@ -107,7 +107,6 @@ public class Connections {
 
 	public void connectSql() {
 		try {
-//			Class.forName("com.mysql.cj.jdbc.Driver");// Set driver
 			Class.forName("com.mysql.cj.jdbc.Driver");  
 //			connection = DriverManager.getConnection("jdbc:mysql://194.210.86.10:3306/g19", "aluno", "aluno");
 			connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/sid", "root", "");

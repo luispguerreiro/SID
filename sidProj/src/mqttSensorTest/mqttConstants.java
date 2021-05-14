@@ -80,7 +80,6 @@ public class mqttConstants {
 			assignConstants();
 			Logger loggerMongo = Logger.getLogger("org.mongodb.driver");
 			loggerMongo.setLevel(Level.WARNING);
-
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

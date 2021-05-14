@@ -1,4 +1,3 @@
-import java.awt.desktop.ScreenSleepEvent;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -23,7 +22,7 @@ public class SqlDispatcher implements Runnable {
 		this.connectCloud = connectCloud;
 		this.centralWork = centralWork;
 		try {
-//			getAllSensorLimits();
+			getAllSensorLimits();
 			getAllSensorLastMedicao();
 			sqlGetCulturas(centralWork.getParametersZona1(), 1);
 			sqlGetCulturas(centralWork.getParametersZona2(), 2);
@@ -45,6 +44,7 @@ public class SqlDispatcher implements Runnable {
 		}
 		return limit;
 	}
+
 
 	public int cloudGetSensorMaximumLimits(int zona, String tipoSensor) throws SQLException {
 		Statement stmt = connectCloud.createStatement();
@@ -73,7 +73,7 @@ public class SqlDispatcher implements Runnable {
 
 			if (horaMedicao.isAfter(nowMinus5Min))
 				date = horaMedicao.toString();
-			else 
+			else
 				date = nowMinus5Min.toString();
 		} else {
 			date = nowMinus5Min.toString();

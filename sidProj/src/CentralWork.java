@@ -45,7 +45,7 @@ public class CentralWork {
 		medicaoQueue = new LinkedBlockingQueue<>();
 		alertaQueue = new LinkedBlockingQueue<>();
 		culturaMedicaoQueue = new LinkedBlockingQueue<>();
-		attributeSensorLimits();
+		attributeSensorLimits(); //quando sql da nuvem está em baixo
 		c = new Connections(this);
 		s = new SqlDispatcher(c.getConnection(), c.getConnectCloud(), this);
 		Worker workertemp = new Worker(Constants.colt1, "T", 1, this);
@@ -257,10 +257,6 @@ public class CentralWork {
 
 	public static void main(String[] args) throws IOException {
 		CentralWork cw = new CentralWork();
-//		SqlDispatcher s = new SqlDispatcher(cw.getC().getConnection(), cw.getC().getConnectCloud(), cw);
-//		Worker worker = new Worker(Constants.colt1, "T1", cw);
-//		worker.run();
-//		s.run();
 	}
 
 }
