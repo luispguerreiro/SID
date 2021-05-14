@@ -1,7 +1,6 @@
 package mqttSensorTest;
 
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -201,6 +200,8 @@ public class mqttWorker implements Runnable, MqttCallback {
 		int tinyint = 0;
 		int aux = 0;
 		while (true) {
+			LocalDateTime.now().minusHours(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
 			if (!(lastMedicaoDia.equals(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))) {
 				lastMedicaoDia = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 				lastMedicaoHora = LocalDateTime.now().minusMinutes(5).format(DateTimeFormatter.ofPattern("HH:mm:ss"));
@@ -226,8 +227,9 @@ public class mqttWorker implements Runnable, MqttCallback {
 						String s = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
 								+ "VALUES ('" + m.getId() + "', '" + m.getTimestamp() + "', " + m.getLeitura() + ", '"
 								+ sensor + "', " + zona + ")";
+						writeSensor(s, myMqttMedicaoTopic);
 
-						String nowMinus5MiString2 = LocalDateTime.now().minusMinutes(5)
+						String nowMinus5MiString2 = LocalDateTime.now().minusSeconds(16)
 								.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 						LocalDateTime nowMinus5Min2 = LocalDateTime.parse(nowMinus5MiString2,
 								DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
@@ -256,70 +258,13 @@ public class mqttWorker implements Runnable, MqttCallback {
 												"           ANOMALIAS        \n *********ANOMALIAS********\n ******************");
 									} else {
 										for (int i = 0; i < anomalies.size(); i++) {
-//											if(mqttConstants.anomalies_to_notifications.equals("true")) {
-											if (i == anomalies.size() - 1)
-												tinyint = 1;
-											for (mqttParametrosCultura parametro : centralWork.getParameters(zona)) {
-												mqttAlerta a;
-												if (checkMinMaxTypeSensor(parametro, anomalies.get(i).getLeitura())) {
-													a = new mqttAlerta(anomalies.get(i).getId(), parametro.getId(),
-															chooseTipoAlerta(), " DE ULTRAPASSAGEM DE VALORES", zona,
-															sensor,
-															anomalies.get(i).getData() + " "
-																	+ anomalies.get(i).getHora(),
-															anomalies.get(i).getLeitura(), tinyint);
-													String horaEscrita = LocalDateTime.now()
-															.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-													String t = "INSERT INTO `sid`.`alerta` (`Medicao_IdMedicao`, `Cultura_IdCultura`, `IdAlerta`, `Hora_Escrita`, `TipoAlerta`, "
-															+ "`Mensagem`, `Zona`, `Sensor`,`Hora`, `Leitura`, `Cultura`, `Email`, `enviarAlerta`) VALUES ('"
-															+ a.getMedicaoId() + "', " + a.getCulturaId() + ", null, '"
-															+ horaEscrita + "', '" + a.getTipoAlerta() + "', '"
-															+ a.getMensagem() + "', " + zona + ", '" + sensor + "', '"
-															+ a.getDate() + "', " + a.getMedicao() + ", null, null, "
-															+ a.getEnviarAlerta() + ")";
-													String medicao = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
-															+ "VALUES ('" + a.getMedicaoId() + "', '" + a.getDate()
-															+ "', " + a.getMedicao() + ", '" + sensor + "', " + zona
-															+ ")";
-													String culturaMedicao = "INSERT INTO `sid`.`cultura_medicao` (`Medicao_IdMedicao`, `Cultura_IdCultura`) VALUES ('"
-															+ a.getMedicaoId() + "', " + a.getCulturaId() + ")";
-
-													writeSensor(medicao, myMqttAlertTopic);
-													writeSensor(culturaMedicao, myMqttAlertTopic);
-													writeSensor(t, myMqttAlertTopic);
-													aux = 1;
-//												}
-//											}
-												} else {
-													if (checkAproximacaoSensor(parametro,
-															anomalies.get(i).getLeitura())) {
-														a = new mqttAlerta(anomalies.get(i).getId(), parametro.getId(),
-																chooseTipoAlerta(), " DE APROXIMAÇÃO DE VALORES", zona,
-																sensor,
-																anomalies.get(i).getData() + " "
-																		+ anomalies.get(i).getHora(),
-																anomalies.get(i).getLeitura(), tinyint);
-														String horaEscrita = LocalDateTime.now().format(
-																DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-														String t = "INSERT INTO `sid`.`alerta` (`Medicao_IdMedicao`, `Cultura_IdCultura`, `IdAlerta`, `Hora_Escrita`, `TipoAlerta`, "
-																+ "`Mensagem`, `Zona`, `Sensor`,`Hora`, `Leitura`, `Cultura`, `Email`, `enviarAlerta`) VALUES ('"
-																+ a.getMedicaoId() + "', " + a.getCulturaId()
-																+ ", null, '" + horaEscrita + "', '" + a.getTipoAlerta()
-																+ "', '" + a.getMensagem() + "', " + zona + ", '"
-																+ sensor + "', '" + a.getDate() + "', " + a.getMedicao()
-																+ ", null, null, " + a.getEnviarAlerta() + ")";
-														String medicao = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
-																+ "VALUES ('" + a.getMedicaoId() + "', '" + a.getDate()
-																+ "', " + a.getMedicao() + ", '" + sensor + "', " + zona
-																+ ")";
-														String culturaMedicao = "INSERT INTO `sid`.`cultura_medicao` (`Medicao_IdMedicao`, `Cultura_IdCultura`) VALUES ('"
-																+ a.getMedicaoId() + "', " + a.getCulturaId() + ")";
-
-														writeSensor(medicao, myMqttAlertTopic);
-														writeSensor(culturaMedicao, myMqttAlertTopic);
-														writeSensor(t, myMqttAlertTopic);
-														aux = 1;
-													}
+											if (mqttConstants.anomalies_to_notifications.equals("true")) {
+												if (i == anomalies.size() - 1)
+													tinyint = 1;
+												aux = falseAnomaliesToAlertWithNotification(tinyint, aux, i);
+											}else {
+												if (mqttConstants.anomalies_to_notifications.equals("false")) {
+													aux = falseAnomaliesToAlerta(tinyint, aux, i);
 												}
 											}
 										}
@@ -338,7 +283,7 @@ public class mqttWorker implements Runnable, MqttCallback {
 						if (anomalies.size() == 0 && aux == 0) { // segue aqui para alertas normais
 							sendAlertas(doc);
 						}
-						writeSensor(s, myMqttMedicaoTopic);
+
 					}
 				} else
 					System.err.println("ERRO CARACTER NA MEDICAO");
@@ -347,7 +292,123 @@ public class mqttWorker implements Runnable, MqttCallback {
 				lastMedicaoHora = doc.getString("Hora");
 			}
 		}
+	}
+	
+	/**
+	 * @param tinyint
+	 * @param aux
+	 * @param i
+	 * @return
+	 */
+	public int falseAnomaliesToAlerta(int tinyint, int aux, int i) {
+		for (mqttParametrosCultura parametro : centralWork.getParameters(zona)) {
+			mqttAlerta a;
+			if (checkMinMaxTypeSensor(parametro, anomalies.get(i).getLeitura())) {
+				a = new mqttAlerta(anomalies.get(i).getId(), parametro.getId(), chooseTipoAlerta(),
+						" DE ULTRAPASSAGEM DE VALORES", zona, sensor,
+						anomalies.get(i).getData() + " " + anomalies.get(i).getHora(), anomalies.get(i).getLeitura(),
+						tinyint);
+				int enviar_alerta=0;
+				if(minutesToHaveAlert(parametro, a, lastAlertaLimite, culturaIdListLimite)) {
+					enviar_alerta=1;
+				}
+				String horaEscrita = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+				String t = "INSERT INTO `sid`.`alerta` (`Medicao_IdMedicao`, `Cultura_IdCultura`, `IdAlerta`, `Hora_Escrita`, `TipoAlerta`, "
+						+ "`Mensagem`, `Zona`, `Sensor`,`Hora`, `Leitura`, `Cultura`, `Email`, `enviarAlerta`) VALUES ('"
+						+ a.getMedicaoId() + "', " + a.getCulturaId() + ", null, '" + horaEscrita + "', '"
+						+ a.getTipoAlerta() + "', '" + a.getMensagem() + "', " + zona + ", '" + sensor + "', '"
+						+ a.getDate() + "', " + a.getMedicao() + ", null, null, " + enviar_alerta + ")";
+				String medicao = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
+						+ "VALUES ('" + a.getMedicaoId() + "', '" + a.getDate() + "', " + a.getMedicao() + ", '"
+						+ sensor + "', " + zona + ")";
 
+				writeSensor(medicao, myMqttAlertTopic);
+				writeSensor(t, myMqttAlertTopic);
+				aux = 1;
+			} else {
+				if (checkAproximacaoSensor(parametro, anomalies.get(i).getLeitura())) {
+					a = new mqttAlerta(anomalies.get(i).getId(), parametro.getId(), chooseTipoAlerta(),
+							" DE APROXIMAÇÃO DE VALORES", zona, sensor,
+							anomalies.get(i).getData() + " " + anomalies.get(i).getHora(),
+							anomalies.get(i).getLeitura(), tinyint);
+					int enviar_alerta=0;
+					if(minutesToHaveAlert(parametro, a, lastAlertaAproximacao, culturaIdListAproximacao)) {
+						enviar_alerta=1;
+					}
+					String horaEscrita = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+					String t = "INSERT INTO `sid`.`alerta` (`Medicao_IdMedicao`, `Cultura_IdCultura`, `IdAlerta`, `Hora_Escrita`, `TipoAlerta`, "
+							+ "`Mensagem`, `Zona`, `Sensor`,`Hora`, `Leitura`, `Cultura`, `Email`, `enviarAlerta`) VALUES ('"
+							+ a.getMedicaoId() + "', " + a.getCulturaId() + ", null, '" + horaEscrita + "', '"
+							+ a.getTipoAlerta() + "', '" + a.getMensagem() + "', " + zona + ", '" + sensor + "', '"
+							+ a.getDate() + "', " + a.getMedicao() + ", null, null, " + enviar_alerta + ")";
+					String medicao = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
+							+ "VALUES ('" + a.getMedicaoId() + "', '" + a.getDate() + "', " + a.getMedicao() + ", '"
+							+ sensor + "', " + zona + ")";
+
+					writeSensor(medicao, myMqttAlertTopic);
+					writeSensor(t, myMqttAlertTopic);
+
+//													centralWork.getAlertaQueue().offer(a);
+					aux = 1;
+				}
+			}
+		}
+		return aux;
+	}
+
+	/**
+	 * @param tinyint
+	 * @param aux
+	 * @param i
+	 * @return
+	 */
+	public int falseAnomaliesToAlertWithNotification(int tinyint, int aux, int i) {
+		for (mqttParametrosCultura parametro : centralWork.getParameters(zona)) {
+			mqttAlerta a;
+			if (checkMinMaxTypeSensor(parametro, anomalies.get(i).getLeitura())) {
+				a = new mqttAlerta(anomalies.get(i).getId(), parametro.getId(), chooseTipoAlerta(),
+						" DE ULTRAPASSAGEM DE VALORES", zona, sensor,
+						anomalies.get(i).getData() + " " + anomalies.get(i).getHora(), anomalies.get(i).getLeitura(),
+						tinyint);
+				String horaEscrita = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+				String t = "INSERT INTO `sid`.`alerta` (`Medicao_IdMedicao`, `Cultura_IdCultura`, `IdAlerta`, `Hora_Escrita`, `TipoAlerta`, "
+						+ "`Mensagem`, `Zona`, `Sensor`,`Hora`, `Leitura`, `Cultura`, `Email`, `enviarAlerta`) VALUES ('"
+						+ a.getMedicaoId() + "', " + a.getCulturaId() + ", null, '" + horaEscrita + "', '"
+						+ a.getTipoAlerta() + "', '" + a.getMensagem() + "', " + zona + ", '" + sensor + "', '"
+						+ a.getDate() + "', " + a.getMedicao() + ", null, null, " + a.getEnviarAlerta() + ")";
+				String medicao = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
+						+ "VALUES ('" + a.getMedicaoId() + "', '" + a.getDate() + "', " + a.getMedicao() + ", '"
+						+ sensor + "', " + zona + ")";
+
+				writeSensor(medicao, myMqttAlertTopic);
+				writeSensor(t, myMqttAlertTopic);
+//												centralWork.getAlertaQueue().offer(a);
+				aux = 1;
+			} else {
+				if (checkAproximacaoSensor(parametro, anomalies.get(i).getLeitura())) {
+					a = new mqttAlerta(anomalies.get(i).getId(), parametro.getId(), chooseTipoAlerta(),
+							" DE APROXIMAÇÃO DE VALORES", zona, sensor,
+							anomalies.get(i).getData() + " " + anomalies.get(i).getHora(),
+							anomalies.get(i).getLeitura(), tinyint);
+					String horaEscrita = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+					String t = "INSERT INTO `sid`.`alerta` (`Medicao_IdMedicao`, `Cultura_IdCultura`, `IdAlerta`, `Hora_Escrita`, `TipoAlerta`, "
+							+ "`Mensagem`, `Zona`, `Sensor`,`Hora`, `Leitura`, `Cultura`, `Email`, `enviarAlerta`) VALUES ('"
+							+ a.getMedicaoId() + "', " + a.getCulturaId() + ", null, '" + horaEscrita + "', '"
+							+ a.getTipoAlerta() + "', '" + a.getMensagem() + "', " + zona + ", '" + sensor + "', '"
+							+ a.getDate() + "', " + a.getMedicao() + ", null, null, " + a.getEnviarAlerta() + ")";
+					String medicao = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
+							+ "VALUES ('" + a.getMedicaoId() + "', '" + a.getDate() + "', " + a.getMedicao() + ", '"
+							+ sensor + "', " + zona + ")";
+
+					writeSensor(medicao, myMqttAlertTopic);
+					writeSensor(t, myMqttAlertTopic);
+
+//													centralWork.getAlertaQueue().offer(a);
+					aux = 1;
+				}
+			}
+		}
+		return aux;
 	}
 
 	/**
@@ -355,7 +416,7 @@ public class mqttWorker implements Runnable, MqttCallback {
 	 */
 	public void sendAlertas(Document doc) {
 
-		String nowMinus5MiString2 = LocalDateTime.now().minusMinutes(5)
+		String nowMinus5MiString2 = LocalDateTime.now().minusSeconds(16)
 				.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
 		LocalDateTime nowMinus5Min2 = LocalDateTime.parse(nowMinus5MiString2,
 				DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
@@ -385,12 +446,11 @@ public class mqttWorker implements Runnable, MqttCallback {
 						String medicao = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
 								+ "VALUES ('" + a.getMedicaoId() + "', '" + a.getDate() + "', " + a.getMedicao() + ", '"
 								+ sensor + "', " + zona + ")";
-						String culturaMedicao = "INSERT INTO `sid`.`cultura_medicao` (`Medicao_IdMedicao`, `Cultura_IdCultura`) VALUES ('"
-								+ a.getMedicaoId() + "', " + a.getCulturaId() + ")";
 
 						writeSensor(medicao, myMqttAlertTopic);
-						writeSensor(culturaMedicao, myMqttAlertTopic);
 						writeSensor(t, myMqttAlertTopic);
+
+//						centralWork.getAlertaQueue().offer(a);
 					} else {
 						String horaEscrita = LocalDateTime.now()
 								.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
@@ -402,12 +462,10 @@ public class mqttWorker implements Runnable, MqttCallback {
 						String medicao = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
 								+ "VALUES ('" + a.getMedicaoId() + "', '" + a.getDate() + "', " + a.getMedicao() + ", '"
 								+ sensor + "', " + zona + ")";
-						String culturaMedicao = "INSERT INTO `sid`.`cultura_medicao` (`Medicao_IdMedicao`, `Cultura_IdCultura`) VALUES ('"
-								+ a.getMedicaoId() + "', " + a.getCulturaId() + ")";
 
 						writeSensor(medicao, myMqttAlertTopic);
-						writeSensor(culturaMedicao, myMqttAlertTopic);
 						writeSensor(t, myMqttAlertTopic);
+//						centralWork.getAlertaQueue().offer(a);
 					}
 				} else {
 					if (checkAproximacaoSensor(parametro, Double.parseDouble(doc.getString("Medicao")))) {
@@ -428,14 +486,13 @@ public class mqttWorker implements Runnable, MqttCallback {
 							String medicao = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
 									+ "VALUES ('" + a.getMedicaoId() + "', '" + a.getDate() + "', " + a.getMedicao()
 									+ ", '" + sensor + "', " + zona + ")";
-							String culturaMedicao = "INSERT INTO `sid`.`cultura_medicao` (`Medicao_IdMedicao`, `Cultura_IdCultura`) VALUES ('"
-									+ a.getMedicaoId() + "', " + a.getCulturaId() + ")";
 
 							writeSensor(medicao, myMqttAlertTopic);
-							writeSensor(culturaMedicao, myMqttAlertTopic);
 							writeSensor(t, myMqttAlertTopic);
 
+//							centralWork.getAlertaQueue().offer(a);
 						} else {
+//							centralWork.getAlertaQueue().offer(a);
 							String horaEscrita = LocalDateTime.now()
 									.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 							String t = "INSERT INTO `sid`.`alerta` (`Medicao_IdMedicao`, `Cultura_IdCultura`, `IdAlerta`, `Hora_Escrita`, `TipoAlerta`, "
@@ -447,32 +504,13 @@ public class mqttWorker implements Runnable, MqttCallback {
 							String medicao = "INSERT INTO `sid`.`medicao` (`IdMedicao`, `Hora`, `Leitura`, `Sensor`, `Zona`) "
 									+ "VALUES ('" + a.getMedicaoId() + "', '" + a.getDate() + "', " + a.getMedicao()
 									+ ", '" + sensor + "', " + zona + ")";
-							String culturaMedicao = "INSERT INTO `sid`.`cultura_medicao` (`Medicao_IdMedicao`, `Cultura_IdCultura`) VALUES ('"
-									+ a.getMedicaoId() + "', " + a.getCulturaId() + ")";
 
 							writeSensor(medicao, myMqttAlertTopic);
-							writeSensor(culturaMedicao, myMqttAlertTopic);
 							writeSensor(t, myMqttAlertTopic);
 						}
 					}
 				}
 			}
-		}
-	}
-
-	/**
-	 * @param stmt
-	 * @param id
-	 * @param zona
-	 * @throws SQLException
-	 */
-	public void insertCulturaMedicao(Statement stmt, String id, int zona) throws SQLException {
-		String culturaMedicao;
-		for (mqttParametrosCultura parameter : centralWork.getParameters(zona)) {
-			culturaMedicao = "INSERT INTO `sid`.`cultura_medicao` (`Medicao_IdMedicao`, `Cultura_IdCultura`) VALUES ('"
-					+ id + "', " + parameter.getId() + ")";
-
-			int cMedicao = stmt.executeUpdate(culturaMedicao);
 		}
 	}
 
@@ -498,10 +536,14 @@ public class mqttWorker implements Runnable, MqttCallback {
 						DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
 				if (alerta.getCulturaId() == a.getCulturaId()) {
-					LocalDateTime horaAlerta = LocalDateTime.parse(alerta.getDate(),
+					LocalDateTime horaLastAlerta = LocalDateTime.parse(alerta.getDate(),
 							DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+					LocalDateTime horaAlertaNew = LocalDateTime.parse(a.getDate(),
+							DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).minusSeconds(mqttConstants.minutesToHaveAlert);
+					
 
-					if (horaAlerta.isBefore(nowMinus5Min)) {
+					if (horaLastAlerta.isBefore(horaAlertaNew)) {
+//					if (horaAlerta.isBefore(nowMinus5Min)) {
 
 						System.out.println("VERDADEIRO ALERTA PARA O USER!!!!");
 						System.out.println("\n              ****new alerta added**** Cultura: " + parametro.getId());
@@ -514,6 +556,20 @@ public class mqttWorker implements Runnable, MqttCallback {
 		}
 		return false;
 	}
+
+//	public static void main(String[] args) {
+//		String nowMinus5MiString = LocalDateTime.now().minusSeconds(15)
+//				.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+//		LocalDateTime nowMinus5Min = LocalDateTime.parse(nowMinus5MiString,
+//				DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+//
+//		String nowMinus5MiString2 = LocalDateTime.now().minusSeconds(20)
+//				.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+//		LocalDateTime nowMinus5Min2 = LocalDateTime.parse(nowMinus5MiString2,
+//				DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+//
+//		System.out.println(nowMinus5Min.toString() + "   " + nowMinus5Min2.toString());
+//	}
 
 	@Override
 	public void connectionLost(Throwable cause) {

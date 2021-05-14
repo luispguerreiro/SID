@@ -356,7 +356,6 @@ public class Worker implements Runnable {
 	public boolean minutesToHaveAlert(ParametrosCultura parametro, Alerta a, List<Alerta> lastAlerta,
 			List<Integer> culturaIdList) {
 		List<Alerta> aux = new ArrayList<>(lastAlerta);
-//		aux.sort();
 		if (lastAlerta.isEmpty() || !culturaIdList.contains(a.getCulturaId())) {
 			lastAlerta.add(a);
 			culturaIdList.add(a.getCulturaId());
@@ -372,10 +371,15 @@ public class Worker implements Runnable {
 						DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
 				if (alerta.getCulturaId() == a.getCulturaId()) {
-					LocalDateTime horaAlerta = LocalDateTime.parse(alerta.getDate(),
+					LocalDateTime horaLastAlerta = LocalDateTime.parse(alerta.getDate(),
 							DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+					LocalDateTime horaAlertaNew = LocalDateTime.parse(a.getDate(),
+							DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).minusSeconds(Constants.minutesToHaveAlert);
+					
 
-					if (horaAlerta.isBefore(nowMinus5Min)) {
+					if (horaLastAlerta.isBefore(horaAlertaNew)) {
+//						if (horaAlerta.isBefore(nowMinus5Min) || horaAlerta.isBefore(horaAlertaNew)) {
+						System.out.println(horaLastAlerta + " ..... " + horaAlertaNew);
 
 						System.out.println("VERDADEIRO ALERTA PARA O USER!!!!");
 						System.out.println("\n              ****new alerta added**** Cultura: " + parametro.getId());
@@ -394,13 +398,14 @@ public class Worker implements Runnable {
 				.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 		LocalDateTime nowMinus5Min = LocalDateTime.parse(nowMinus5MiString,
 				DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+		String horaAlerta = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+		LocalDateTime horaAlerta2 = LocalDateTime.parse(horaAlerta,
+				DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); 
 
-		String nowMinus5MiString2 = LocalDateTime.now().minusSeconds(20)
-				.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-		LocalDateTime nowMinus5Min2 = LocalDateTime.parse(nowMinus5MiString2,
-				DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-
-		System.out.println(nowMinus5Min.toString() + "   " + nowMinus5Min2.toString());
+		System.out.println(nowMinus5MiString + "   " + horaAlerta);
+		if (horaAlerta2.isAfter(nowMinus5Min)) {	
+			System.out.println(nowMinus5Min.toString() + "   " + horaAlerta.toString());
+		}
 	}
 
 }

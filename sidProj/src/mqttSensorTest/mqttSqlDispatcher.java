@@ -263,7 +263,7 @@ public class mqttSqlDispatcher implements Runnable, MqttCallback {
 
 			System.out.println(mqttMessage.toString());
 		} catch (Exception x) {
-			x.printStackTrace();
+//			x.printStackTrace();
 		}
 	}
 

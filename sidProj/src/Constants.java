@@ -2,11 +2,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.Connection;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.bson.Document;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
@@ -77,6 +77,9 @@ public class Constants {
 			mongoProperties.load(new FileInputStream(mongoIniFile));
 			assignAdminChoices();
 			assignConstants();
+			Logger loggerMongo = Logger.getLogger("org.mongodb.driver");
+			loggerMongo.setLevel(Level.WARNING);
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
