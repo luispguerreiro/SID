@@ -95,7 +95,7 @@ public class mqttSqlDispatcher implements Runnable, MqttCallback {
 		ResultSet rs = stmt.executeQuery("select Hora from medicao where medicao.sensor= '" + tipoSensor
 				+ "' and medicao.zona " + " = " + zona + " order by IdMedicao desc LIMIT 0, 1");
 		String date = "";
-		String nowMinus5MiString = LocalDateTime.now().minusMinutes(60)
+		String nowMinus5MiString = LocalDateTime.now().minusMinutes(mqttConstants.medicoes_backupTime)
 				.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 		LocalDateTime nowMinus5Min = LocalDateTime.parse(nowMinus5MiString,
 				DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));

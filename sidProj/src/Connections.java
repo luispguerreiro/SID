@@ -29,8 +29,6 @@ public class Connections {
 	private Connection connection;
 	private Connection connectCloud;
 	private boolean estado_ligacao;
-	private String sql_user = "aluno";
-	private String sql_pwd = "aluno";
 	
 	private MongoCollection<Document> colT1;
 	

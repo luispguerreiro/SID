@@ -62,7 +62,7 @@ public class SqlDispatcher implements Runnable {
 		ResultSet rs = stmt.executeQuery("select Hora from medicao where medicao.sensor= '" + tipoSensor
 				+ "' and medicao.zona " + " = " + zona + " order by IdMedicao desc LIMIT 0, 1");
 		String date = "";
-		String nowMinus5MiString = LocalDateTime.now().minusMinutes(5)
+		String nowMinus5MiString = LocalDateTime.now().minusMinutes(Constants.medicoes_backupTime)
 				.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 		LocalDateTime nowMinus5Min = LocalDateTime.parse(nowMinus5MiString,
 				DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));

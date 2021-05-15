@@ -12,15 +12,11 @@ import com.mongodb.client.MongoDatabase;
 
 public class Constants {
 
-//	private String mongoIniFile = "C:\\Users\\henri\\Dropbox\\iscte\\3ºAno\\2ºSemestre\\Proj Integracao Sistemas Inf Distribuidos\\dbtools(3)\\dbtools\\CloudToMongoReplica.ini";
-	private String mongoIniFile = "CloudToMongoReplica.ini";
-	// private String mongoIniFile =
-	// "C:\\Users\\henri\\Dropbox\\iscte\\3ºAno\\2ºSemestre\\Proj Integracao
-	// Sistemas Inf Distribuidos\\dbtools(3)\\dbtools\\CloudToMongo.ini";
-//	private String sqlIniFile = "C:\\Users\\henri\\Dropbox\\iscte\\3ºAno\\2ºSemestre\\Proj Integracao Sistemas Inf Distribuidos\\dbtools(3)\\dbtools\\CloudToMongo.ini";
+	private final String configFile = "Configurations.ini";
+	private final String defaultFile = "NaoAlterar.ini";
 
+	private final Properties appProperties = new Properties();
 	private final Properties mongoProperties = new Properties();
-	private final Properties SqlProperties = new Properties();
 
 	static MongoDatabase sid_db;
 	static String sid_mongo_user;
@@ -74,7 +70,9 @@ public class Constants {
 
 	public Constants() {
 		try {
-			mongoProperties.load(new FileInputStream(mongoIniFile));
+			appProperties.load(new FileInputStream(configFile));
+			mongoProperties.load(new FileInputStream(defaultFile));
+			
 			assignAdminChoices();
 			assignConstants();
 			Logger loggerMongo = Logger.getLogger("org.mongodb.driver");
@@ -139,18 +137,12 @@ public class Constants {
 	}
 
 	public void assignAdminChoices() {
-		minutesToHaveAlert = Integer.parseInt(mongoProperties.getProperty("minutesToHaveAlert"));
-		percentagemAviso = Double.parseDouble(mongoProperties.getProperty("percentagemAviso"));
-		variacaoParaAnomalos = Integer.parseInt(mongoProperties.getProperty("variacaoParaAnomalos"));
-		numeroMedicoesToleraveis = Integer.parseInt(mongoProperties.getProperty("numeroMedicoesToleraveis"));
-		anomalies_to_notifications = mongoProperties.getProperty("anomalies_to_notifications");
-		medicoes_backupTime = Integer.parseInt(mongoProperties.getProperty("medicoes_backupTime"));
-	}
-
-	public static void main(String[] args) {
-		Constants c = new Constants();
-		c.assignConstants();
-		System.out.println(mongo_address);
+		minutesToHaveAlert = Integer.parseInt(appProperties.getProperty("minutesToHaveAlert"));
+		percentagemAviso = Double.parseDouble(appProperties.getProperty("percentagemAviso"));
+		variacaoParaAnomalos = Integer.parseInt(appProperties.getProperty("variacaoParaAnomalos"));
+		numeroMedicoesToleraveis = Integer.parseInt(appProperties.getProperty("numeroMedicoesToleraveis"));
+		anomalies_to_notifications = appProperties.getProperty("anomalies_to_notifications");
+		medicoes_backupTime = Integer.parseInt(appProperties.getProperty("medicoes_backupTime"));
 	}
 
 }
