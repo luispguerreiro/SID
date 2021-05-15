@@ -106,7 +106,7 @@ public class mqttSqlDispatcher implements Runnable, MqttCallback {
 
 			if (horaMedicao.isAfter(nowMinus5Min))
 				date = horaMedicao.toString();
-			else 
+			else
 				date = nowMinus5Min.toString();
 		} else {
 			date = nowMinus5Min.toString();
@@ -252,6 +252,9 @@ public class mqttSqlDispatcher implements Runnable, MqttCallback {
 	public void connectionLost(Throwable cause) {
 
 	}
+	
+
+	
 
 	@Override
 	public void messageArrived(final String s, final MqttMessage mqttMessage) throws Exception {
@@ -259,7 +262,6 @@ public class mqttSqlDispatcher implements Runnable, MqttCallback {
 		try {
 			stmt = connect.createStatement();
 			int rs = stmt.executeUpdate(mqttMessage.toString());
-//				Thread.sleep(1000); 
 
 			System.out.println(mqttMessage.toString());
 		} catch (Exception x) {

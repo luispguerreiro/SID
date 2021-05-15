@@ -56,17 +56,15 @@ public class Constants {
 	static MongoCollection<Document> coll1;
 	static MongoCollection<Document> coll2;
 
-	static int minutesToHaveAlert;
+	static int secondsToHaveAlert;
 	static int variacaoParaAnomalos;
 	static int numeroMedicoesToleraveis;
 	static double percentagemAviso;
 	static int medicoes_backupTime;
 	static String anomalies_to_notifications;
-
-	private Connection connection;
-	private boolean estado_ligacao;
-	private String sql_user = "aluno";
-	private String sql_pwd = "aluno";
+	static String sqlUserName;
+	static String sqlPassword;
+	static String sql_DBName;
 
 	public Constants() {
 		try {
@@ -127,22 +125,16 @@ public class Constants {
 		Constants.coll2 = Constants.db.getCollection(Constants.mongo_collectionl2);
 	}
 
-	public void assignColIterations() {
-		ColIteration t2 = new ColIteration(colSidt2, colt2);
-		ColIteration t1 = new ColIteration(colSidt1, colt1);
-		ColIteration h1 = new ColIteration(colSidh1, colh1);
-		ColIteration h2 = new ColIteration(colSidh2, colh2);
-		ColIteration l1 = new ColIteration(colSidl1, coll1);
-		ColIteration l2 = new ColIteration(colSidl2, coll2);
-	}
-
 	public void assignAdminChoices() {
-		minutesToHaveAlert = Integer.parseInt(appProperties.getProperty("minutesToHaveAlert"));
+		secondsToHaveAlert = Integer.parseInt(appProperties.getProperty("secondsToHaveAlert"));
 		percentagemAviso = Double.parseDouble(appProperties.getProperty("percentagemAviso"));
 		variacaoParaAnomalos = Integer.parseInt(appProperties.getProperty("variacaoParaAnomalos"));
 		numeroMedicoesToleraveis = Integer.parseInt(appProperties.getProperty("numeroMedicoesToleraveis"));
 		anomalies_to_notifications = appProperties.getProperty("anomalies_to_notifications");
 		medicoes_backupTime = Integer.parseInt(appProperties.getProperty("medicoes_backupTime"));
+		sqlUserName = appProperties.getProperty("sqlUserName");
+		sqlPassword = appProperties.getProperty("sqlPassword");
+		sql_DBName = appProperties.getProperty("sql_DBName");
 	}
 
 }

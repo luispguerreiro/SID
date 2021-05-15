@@ -18,19 +18,13 @@ public class Connections {
 	 * 
 	 */
 
-	private String mongoIniFile = "C:\\Users\\henri\\Dropbox\\iscte\\3ºAno\\2ºSemestre\\Proj Integracao Sistemas Inf Distribuidos\\dbtools(3)\\dbtools\\CloudToMongoReplica.ini";
-	// private String mongoIniFile =
-	// "C:\\Users\\henri\\Dropbox\\iscte\\3ºAno\\2ºSemestre\\Proj Integracao
-	// Sistemas Inf Distribuidos\\dbtools(3)\\dbtools\\CloudToMongo.ini";
-//	private String sqlIniFile = "C:\\Users\\henri\\Dropbox\\iscte\\3ºAno\\2ºSemestre\\Proj Integracao Sistemas Inf Distribuidos\\dbtools(3)\\dbtools\\CloudToMongo.ini";
 
+	@SuppressWarnings("unused")
 	private Constants constants;
 
 	private Connection connection;
 	private Connection connectCloud;
 	private boolean estado_ligacao;
-	
-	private MongoCollection<Document> colT1;
 	
 	private CentralWork cw;
 	
@@ -43,11 +37,6 @@ public class Connections {
 		connectSqlCloud(); //comentado enquanto stor tem o sql cloud desligado
 		connectToMongoSid();
 		connectToMongoGroup();
-//
-//		for (int i = 0; i < 6; i++) {
-//			Thread t = new Thread();
-//			t.start();
-//		}
 	}
 
 	@SuppressWarnings({ "resource" })
@@ -62,11 +51,8 @@ public class Connections {
 		}
 		Constants.sid_db = new MongoClient(new MongoClientURI(str)).getDatabase(Constants.sid_mongo_database);
 		cw.getConstants().assignSidCol();
-//		constants.assignSidCol();
 		System.out.println("Conexão estabelecida com sucesso a " + Constants.sid_mongo_address);
 
-		// AQUI TEM DE SER THREADS
-//		constants.assignColIterations();
 	}
 
 	@SuppressWarnings({ "resource" })
@@ -84,13 +70,10 @@ public class Connections {
 			str += "/?authSource=admin";
 		}
 		Constants.db = new MongoClient(new MongoClientURI(str)).getDatabase(Constants.mongo_database);
-//		constants.assignColGroup();
 		cw.getConstants().assignColGroup();
 		System.out.println("Conexão estabelecida com sucesso a " + Constants.mongo_address);
 
 		colIterations();
-		// AQUI TEM DE SER THREADS
-//		constants.assignColIterations();
 	}
 
 	
@@ -106,7 +89,7 @@ public class Connections {
 	public void connectSql() {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");  
-			connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/sid", "tecnico@gmail.com", "123");
+			connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/" + Constants.sql_DBName, Constants.sqlUserName, Constants.sqlPassword);
 			estado_ligacao = true;
 			System.out.println("Ligacao Estabelecida ao sql : " + estado_ligacao);
 		} catch (SQLException | ClassNotFoundException e) {
@@ -134,6 +117,4 @@ public class Connections {
 	public Connection getConnection() {
 		return connection;
 	}
-	
-
 }

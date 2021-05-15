@@ -19,39 +19,21 @@ public class mqttConnections {
 	 * 
 	 */
 
-	private String mongoIniFile = "C:\\Users\\henri\\Dropbox\\iscte\\3ºAno\\2ºSemestre\\Proj Integracao Sistemas Inf Distribuidos\\dbtools(3)\\dbtools\\CloudToMongoReplica.ini";
-	// private String mongoIniFile =
-	// "C:\\Users\\henri\\Dropbox\\iscte\\3ºAno\\2ºSemestre\\Proj Integracao
-	// Sistemas Inf Distribuidos\\dbtools(3)\\dbtools\\CloudToMongo.ini";
-//	private String sqlIniFile = "C:\\Users\\henri\\Dropbox\\iscte\\3ºAno\\2ºSemestre\\Proj Integracao Sistemas Inf Distribuidos\\dbtools(3)\\dbtools\\CloudToMongo.ini";
-
+	@SuppressWarnings("unused")
 	private mqttConstants constants;
 
 	private Connection connection;
 	private Connection connectCloud;
 	private boolean estado_ligacao;
-	private String sql_user = "aluno";
-	private String sql_pwd = "aluno";
-	
-	private MongoCollection<Document> colT1;
-	
 	private mqttCentralWork cw;
 	
-
-
 	public mqttConnections(mqttCentralWork cw) throws IOException {
 		this.cw=cw;
 		constants = new mqttConstants();
-//		constants.assignConstants();
 		connectSql();
 		connectSqlCloud();
 		connectToMongoSid();
 		connectToMongoGroup();
-//
-//		for (int i = 0; i < 6; i++) {
-//			Thread t = new Thread();
-//			t.start();
-//		}
 	}
 
 	@SuppressWarnings({ "resource" })
@@ -66,11 +48,7 @@ public class mqttConnections {
 		}
 		mqttConstants.sid_db = new MongoClient(new MongoClientURI(str)).getDatabase(mqttConstants.sid_mongo_database);
 		cw.getConstants().assignSidCol();
-//		constants.assignSidCol();
 		System.out.println("Conexão estabelecida com sucesso a " + mqttConstants.sid_mongo_address);
-
-		// AQUI TEM DE SER THREADS
-//		constants.assignColIterations();
 	}
 
 	@SuppressWarnings({ "resource" })
@@ -88,13 +66,10 @@ public class mqttConnections {
 			str += "/?authSource=admin";
 		}
 		mqttConstants.db = new MongoClient(new MongoClientURI(str)).getDatabase(mqttConstants.mongo_database);
-//		constants.assignColGroup();
 		cw.getConstants().assignColGroup();
 		System.out.println("Conexão estabelecida com sucesso a " + mqttConstants.mongo_address);
 
 		colIterations();
-		// AQUI TEM DE SER THREADS
-//		constants.assignColIterations();
 	}
 
 	
@@ -109,9 +84,8 @@ public class mqttConnections {
 
 	public void connectSql() {
 		try {
-//			Class.forName("com.mysql.cj.jdbc.Driver");// Set driver
 			Class.forName("com.mysql.cj.jdbc.Driver");  
-			connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/sid", "tecnico@gmail.com", "123");
+			connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/" + mqttConstants.sql_DBName, mqttConstants.sqlUserName, mqttConstants.sqlPassword);
 			estado_ligacao = true;
 			System.out.println("Ligacao Estabelecida ao sql : " + estado_ligacao);
 		} catch (SQLException | ClassNotFoundException e) {

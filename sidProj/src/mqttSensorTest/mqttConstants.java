@@ -13,15 +13,11 @@ import com.mongodb.client.MongoDatabase;
 
 public class mqttConstants {
 
-//	private String mongoIniFile = "C:\\Users\\henri\\Dropbox\\iscte\\3ºAno\\2ºSemestre\\Proj Integracao Sistemas Inf Distribuidos\\dbtools(3)\\dbtools\\CloudToMongoReplica.ini";
-	private String mongoIniFile = "CloudToMongoReplica.ini";
-	// private String mongoIniFile =
-	// "C:\\Users\\henri\\Dropbox\\iscte\\3ºAno\\2ºSemestre\\Proj Integracao
-	// Sistemas Inf Distribuidos\\dbtools(3)\\dbtools\\CloudToMongo.ini";
-//	private String sqlIniFile = "C:\\Users\\henri\\Dropbox\\iscte\\3ºAno\\2ºSemestre\\Proj Integracao Sistemas Inf Distribuidos\\dbtools(3)\\dbtools\\CloudToMongo.ini";
+	private final String configFile = "Configurations.ini";
+	private final String defaultFile = "NaoAlterar.ini";
 
+	private final Properties appProperties = new Properties();
 	private final Properties mongoProperties = new Properties();
-	private final Properties SqlProperties = new Properties();
 
 	static MongoDatabase sid_db;
 	static String sid_mongo_user;
@@ -61,21 +57,20 @@ public class mqttConstants {
 	static MongoCollection<Document> coll1;
 	static MongoCollection<Document> coll2;
 
-	static int minutesToHaveAlert;
+	static int secondsToHaveAlert;
 	static int variacaoParaAnomalos;
 	static int numeroMedicoesToleraveis;
 	static double percentagemAviso;
 	static int medicoes_backupTime;
 	static String anomalies_to_notifications;
-
-	private Connection connection;
-	private boolean estado_ligacao;
-	private String sql_user = "aluno";
-	private String sql_pwd = "aluno";
+	static String sqlUserName;
+	static String sqlPassword;
+	static String sql_DBName;
 
 	public mqttConstants() {
 		try {
-			mongoProperties.load(new FileInputStream(mongoIniFile));
+			appProperties.load(new FileInputStream(configFile));
+			mongoProperties.load(new FileInputStream(defaultFile));
 			assignAdminChoices();
 			assignConstants();
 			Logger loggerMongo = Logger.getLogger("org.mongodb.driver");
@@ -129,22 +124,16 @@ public class mqttConstants {
 		mqttConstants.coll2 = mqttConstants.db.getCollection(mqttConstants.mongo_collectionl2);
 	}
 
-	public void assignColIterations() {
-		mqttColIteration t2 = new mqttColIteration(colSidt2, colt2);
-		mqttColIteration t1 = new mqttColIteration(colSidt1, colt1);
-		mqttColIteration h1 = new mqttColIteration(colSidh1, colh1);
-		mqttColIteration h2 = new mqttColIteration(colSidh2, colh2);
-		mqttColIteration l1 = new mqttColIteration(colSidl1, coll1);
-		mqttColIteration l2 = new mqttColIteration(colSidl2, coll2);
-	}
-
 	public void assignAdminChoices() {
-		minutesToHaveAlert = Integer.parseInt(mongoProperties.getProperty("minutesToHaveAlert"));
-		percentagemAviso = Double.parseDouble(mongoProperties.getProperty("percentagemAviso"));
-		variacaoParaAnomalos = Integer.parseInt(mongoProperties.getProperty("variacaoParaAnomalos"));
-		numeroMedicoesToleraveis = Integer.parseInt(mongoProperties.getProperty("numeroMedicoesToleraveis"));
-		anomalies_to_notifications = mongoProperties.getProperty("anomalies_to_notifications");
-		medicoes_backupTime = Integer.parseInt(mongoProperties.getProperty("medicoes_backupTime"));
+		secondsToHaveAlert = Integer.parseInt(appProperties.getProperty("secondsToHaveAlert"));
+		percentagemAviso = Double.parseDouble(appProperties.getProperty("percentagemAviso"));
+		variacaoParaAnomalos = Integer.parseInt(appProperties.getProperty("variacaoParaAnomalos"));
+		numeroMedicoesToleraveis = Integer.parseInt(appProperties.getProperty("numeroMedicoesToleraveis"));
+		anomalies_to_notifications = appProperties.getProperty("anomalies_to_notifications");
+		medicoes_backupTime = Integer.parseInt(appProperties.getProperty("medicoes_backupTime"));
+		sqlUserName = appProperties.getProperty("sqlUserName");
+		sqlPassword = appProperties.getProperty("sqlPassword");
+		sql_DBName = appProperties.getProperty("sql_DBName");
 	}
 
 	public static void main(String[] args) {

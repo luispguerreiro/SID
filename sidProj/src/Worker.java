@@ -365,7 +365,7 @@ public class Worker implements Runnable {
 		} else {
 			for (Alerta alerta : aux) {
 
-				String nowMinus5MiString = LocalDateTime.now().minusSeconds(Constants.minutesToHaveAlert)
+				String nowMinus5MiString = LocalDateTime.now().minusSeconds(Constants.secondsToHaveAlert)
 						.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 				LocalDateTime nowMinus5Min = LocalDateTime.parse(nowMinus5MiString,
 						DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
@@ -374,7 +374,7 @@ public class Worker implements Runnable {
 					LocalDateTime horaLastAlerta = LocalDateTime.parse(alerta.getDate(),
 							DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 					LocalDateTime horaAlertaNew = LocalDateTime.parse(a.getDate(),
-							DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).minusSeconds(Constants.minutesToHaveAlert);
+							DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).minusSeconds(Constants.secondsToHaveAlert);
 					
 
 					if (horaLastAlerta.isBefore(horaAlertaNew)) {
