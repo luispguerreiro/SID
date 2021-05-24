@@ -37,6 +37,8 @@ public class mqttCentralWork {
 	private ArrayList<mqttParametrosCultura> parametersZona2 = new ArrayList<>();
 
 	private mqttConstants constants;
+	
+	private static long start;
 
 	mqttConnections c;
 
@@ -239,8 +241,12 @@ public class mqttCentralWork {
 	public mqttConnections getC() {
 		return c;
 	}
+	public static long getStart() {
+		return start;
+	}
 
 	public static void main(String[] args) throws IOException {
+		start = System.currentTimeMillis();
 		mqttCentralWork cw = new mqttCentralWork();
 //		SqlDispatcher s = new SqlDispatcher(cw.getC().getConnection(), cw.getC().getConnectCloud(), cw);
 //		Worker worker = new Worker(Constants.colt1, "T1", cw);

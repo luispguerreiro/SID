@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -32,6 +33,8 @@ public class CentralWork {
 	private double zona2sensorLMin;
 
 	private int lastMedicaoId;
+	
+	private static long start;
 
 	private ArrayList<ParametrosCultura> parametersZona1 = new ArrayList<>();
 	private ArrayList<ParametrosCultura> parametersZona2 = new ArrayList<>();
@@ -254,8 +257,13 @@ public class CentralWork {
 	public Connections getC() {
 		return c;
 	}
+	
+	public static long getStart() {
+		return start;
+	}
 
 	public static void main(String[] args) throws IOException {
+		start = System.currentTimeMillis();
 		CentralWork cw = new CentralWork();
 	}
 

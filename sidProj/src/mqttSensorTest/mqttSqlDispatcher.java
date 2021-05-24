@@ -30,11 +30,14 @@ public class mqttSqlDispatcher implements Runnable, MqttCallback {
 	private Thread thread;
 
 	private mqttCentralWork centralWork;
+	
+	private long time;
 
 	public mqttSqlDispatcher(Connection connect, Connection connectCloud, mqttCentralWork centralWork) {
 		this.connect = connect;
 		this.connectCloud = connectCloud;
 		this.centralWork = centralWork;
+		time = centralWork.getStart();
 		try {
 			getAllSensorLimits();
 			getAllSensorLastMedicao();
@@ -240,6 +243,8 @@ public class mqttSqlDispatcher implements Runnable, MqttCallback {
 
 		while (true) {
 			try {
+//				System.out.println("INICIO: " + time + "\t\t ATUAL: " + System.currentTimeMillis() + "diferenca " + (time-System.currentTimeMillis()));
+				
 				checkCampoAlterado(centralWork.getParameters(1), 1);
 				checkCampoAlterado(centralWork.getParameters(2), 2);
 			} catch (SQLException e1) {
@@ -264,6 +269,8 @@ public class mqttSqlDispatcher implements Runnable, MqttCallback {
 			int rs = stmt.executeUpdate(mqttMessage.toString());
 
 			System.out.println(mqttMessage.toString());
+//			System.out.println("INICIO: " + time + "\t\t ATUAL: " + System.currentTimeMillis() + "diferenca " + (time-System.currentTimeMillis()));
+			
 		} catch (Exception x) {
 //			x.printStackTrace();
 		}

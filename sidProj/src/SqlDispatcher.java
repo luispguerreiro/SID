@@ -16,11 +16,14 @@ public class SqlDispatcher implements Runnable {
 	private Thread thread;
 
 	private CentralWork centralWork;
+	
+	private long time;
 
 	public SqlDispatcher(Connection connect, Connection connectCloud, CentralWork centralWork) {
 		this.connect = connect;
 		this.connectCloud = connectCloud;
 		this.centralWork = centralWork;
+		time = centralWork.getStart();
 		try {
 			getAllSensorLimits();
 			getAllSensorLastMedicao();
@@ -207,7 +210,9 @@ public class SqlDispatcher implements Runnable {
 		while (true) {
 
 			Statement stmt;
+			
 			try {
+//				System.out.println("INICIO: " + time + "\t\t ATUAL: " + System.currentTimeMillis() + "diferenca " + (time-System.currentTimeMillis()));
 				if (!centralWork.getQueueMedicao().isEmpty()) {
 					stmt = connect.createStatement();
 					Medicao medicao = centralWork.getQueueMedicao().poll();

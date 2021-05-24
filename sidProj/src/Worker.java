@@ -48,12 +48,13 @@ public class Worker implements Runnable {
 		System.out.println("Inicializado worker zona: " + zona + " do sensor: " + sensor);
 		thread = new Thread(this);
 		thread.start();
+//		thread.stop();
 //		while(true) {
-//			if(!thread.isAlive()) {
-//				System.out.println("ressucitei");
-//				thread = new Thread(this);
-//				thread.start();
-//			}
+		if (!thread.isAlive()) {
+			System.out.println("ressucitei  " + sensor);
+			thread = new Thread(this);
+			thread.start();
+		}
 //			try {
 //				Thread.sleep(10000);
 //			} catch (InterruptedException e) {
@@ -183,15 +184,17 @@ public class Worker implements Runnable {
 												"           ANOMALIAS        \n *********ANOMALIAS********\n ******************");
 									} else {
 										for (int i = 0; i < anomalies.size(); i++) {
-			/* ideia rui */ 				if (Constants.anomalies_to_notifications.equals("true")) {
+											/* ideia rui */ if (Constants.anomalies_to_notifications.equals("true")) {
 												if (i == anomalies.size() - 1)
 													tinyint = 1;
-												aux = falseAnomaliesToAlertaWithNotification(tinyint, aux, i); 
-												//sempre que é falsa anomalia, envia o ultimo alerta com enviar_alerta=1
-											}else {
-												if(Constants.anomalies_to_notifications.equals("false")) {
+												aux = falseAnomaliesToAlertaWithNotification(tinyint, aux, i);
+												// sempre que é falsa anomalia, envia o ultimo alerta com
+												// enviar_alerta=1
+											} else {
+												if (Constants.anomalies_to_notifications.equals("false")) {
 													aux = falseAnomaliesToAlerta(tinyint, aux, i);
-												//sempre que é falsa anomalia, só envia alerta se o ultimo alerta > 15seg
+													// sempre que é falsa anomalia, só envia alerta se o ultimo alerta >
+													// 15seg
 												}
 											}
 										}
@@ -228,24 +231,18 @@ public class Worker implements Runnable {
 	public int falseAnomaliesToAlertaWithNotification(int tinyint, int aux, int i) {
 		for (ParametrosCultura parametro : centralWork.getParameters(zona)) {
 			Alerta a;
-			if (checkMinMaxTypeSensor(parametro,
-					anomalies.get(i).getLeitura())) {
-				a = new Alerta(anomalies.get(i).getId(), parametro.getId(),
-						chooseTipoAlerta(), " DE ULTRAPASSAGEM DE VALORES",
-						zona, sensor,
-						anomalies.get(i).getData() + " "
-								+ anomalies.get(i).getHora(),
-						anomalies.get(i).getLeitura(), tinyint);
+			if (checkMinMaxTypeSensor(parametro, anomalies.get(i).getLeitura())) {
+				a = new Alerta(anomalies.get(i).getId(), parametro.getId(), chooseTipoAlerta(),
+						" DE ULTRAPASSAGEM DE VALORES", zona, sensor,
+						anomalies.get(i).getData() + " " + anomalies.get(i).getHora(), anomalies.get(i).getLeitura(),
+						tinyint);
 				centralWork.getAlertaQueue().offer(a);
 				aux = 1;
 			} else {
-				if (checkAproximacaoSensor(parametro,
-						anomalies.get(i).getLeitura())) {
-					a = new Alerta(anomalies.get(i).getId(), parametro.getId(),
-							chooseTipoAlerta(), " DE APROXIMAÇÃO DE VALORES",
-							zona, sensor,
-							anomalies.get(i).getData() + " "
-									+ anomalies.get(i).getHora(),
+				if (checkAproximacaoSensor(parametro, anomalies.get(i).getLeitura())) {
+					a = new Alerta(anomalies.get(i).getId(), parametro.getId(), chooseTipoAlerta(),
+							" DE APROXIMAÇÃO DE VALORES", zona, sensor,
+							anomalies.get(i).getData() + " " + anomalies.get(i).getHora(),
 							anomalies.get(i).getLeitura(), tinyint);
 					centralWork.getAlertaQueue().offer(a);
 					aux = 1;
@@ -264,14 +261,11 @@ public class Worker implements Runnable {
 	public int falseAnomaliesToAlerta(int tinyint, int aux, int i) {
 		for (ParametrosCultura parametro : centralWork.getParameters(zona)) {
 			Alerta a;
-			if (checkMinMaxTypeSensor(parametro,
-					anomalies.get(i).getLeitura())) {
-				a = new Alerta(anomalies.get(i).getId(), parametro.getId(),
-						chooseTipoAlerta(), " DE ULTRAPASSAGEM DE VALORES",
-						zona, sensor,
-						anomalies.get(i).getData() + " "
-								+ anomalies.get(i).getHora(),
-						anomalies.get(i).getLeitura(), tinyint);
+			if (checkMinMaxTypeSensor(parametro, anomalies.get(i).getLeitura())) {
+				a = new Alerta(anomalies.get(i).getId(), parametro.getId(), chooseTipoAlerta(),
+						" DE ULTRAPASSAGEM DE VALORES", zona, sensor,
+						anomalies.get(i).getData() + " " + anomalies.get(i).getHora(), anomalies.get(i).getLeitura(),
+						tinyint);
 //															centralWork.getAlertaQueue().offer(a);
 				if (minutesToHaveAlert(parametro, a, lastAlertaLimite, culturaIdListLimite)) {
 					a.setEnviarAlerta(1);
@@ -281,13 +275,10 @@ public class Worker implements Runnable {
 				}
 				aux = 1;
 			} else {
-				if (checkAproximacaoSensor(parametro,
-						anomalies.get(i).getLeitura())) {
-					a = new Alerta(anomalies.get(i).getId(), parametro.getId(),
-							chooseTipoAlerta(), " DE APROXIMAÇÃO DE VALORES",
-							zona, sensor,
-							anomalies.get(i).getData() + " "
-									+ anomalies.get(i).getHora(),
+				if (checkAproximacaoSensor(parametro, anomalies.get(i).getLeitura())) {
+					a = new Alerta(anomalies.get(i).getId(), parametro.getId(), chooseTipoAlerta(),
+							" DE APROXIMAÇÃO DE VALORES", zona, sensor,
+							anomalies.get(i).getData() + " " + anomalies.get(i).getHora(),
 							anomalies.get(i).getLeitura(), tinyint);
 //																centralWork.getAlertaQueue().offer(a);
 					if (minutesToHaveAlert(parametro, a, lastAlertaAproximacao, culturaIdListAproximacao)) {
@@ -373,9 +364,9 @@ public class Worker implements Runnable {
 				if (alerta.getCulturaId() == a.getCulturaId()) {
 					LocalDateTime horaLastAlerta = LocalDateTime.parse(alerta.getDate(),
 							DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-					LocalDateTime horaAlertaNew = LocalDateTime.parse(a.getDate(),
-							DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).minusSeconds(Constants.secondsToHaveAlert);
-					
+					LocalDateTime horaAlertaNew = LocalDateTime
+							.parse(a.getDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+							.minusSeconds(Constants.secondsToHaveAlert);
 
 					if (horaLastAlerta.isBefore(horaAlertaNew)) {
 //						if (horaAlerta.isBefore(nowMinus5Min) || horaAlerta.isBefore(horaAlertaNew)) {
@@ -399,11 +390,10 @@ public class Worker implements Runnable {
 		LocalDateTime nowMinus5Min = LocalDateTime.parse(nowMinus5MiString,
 				DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 		String horaAlerta = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-		LocalDateTime horaAlerta2 = LocalDateTime.parse(horaAlerta,
-				DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); 
+		LocalDateTime horaAlerta2 = LocalDateTime.parse(horaAlerta, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
 		System.out.println(nowMinus5MiString + "   " + horaAlerta);
-		if (horaAlerta2.isAfter(nowMinus5Min)) {	
+		if (horaAlerta2.isAfter(nowMinus5Min)) {
 			System.out.println(nowMinus5Min.toString() + "   " + horaAlerta.toString());
 		}
 	}
